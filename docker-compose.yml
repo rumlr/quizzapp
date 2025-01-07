@@ -7,7 +7,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - quizzapp_db:/db
+      - quizzapp_db:/app/db
 
 volumes:
   quizzapp_db:
