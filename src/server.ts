@@ -124,6 +124,9 @@ export class QuizzServer {
     }
 
     private storeWinner() {
+        if (this.sortedAnswers.length === 0) {
+            return;
+        }
         const winner = this.sortedAnswers[0][0];
         this.dbConnector.insertQuestion(new Date().toISOString(), this.question, this.solution.toString(), this.sortedAnswers[0][1].toString(), winner);
     }
