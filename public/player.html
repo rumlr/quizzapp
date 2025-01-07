@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gravity Quiz App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-top: 20px;
+        }
+
+        h2 {
+            color: #555;
+        }
+
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 90%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #28a745;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        #results {
+            width: 100%;
+            max-width: 600px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: left;
+            color: #333;
+        }
+
+        th {
+            background-color: #f8f8f8;
+        }
+
+        #resultDiv {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #28a745;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+
+<body>
+    <h1>Gravity Quiz App</h1>
+    <h2 id="question">Waiting for question...</h2>
+    <form id="answerForm">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required>
+        <label for="answer">Answer:</label>
+        <input type="number" id="answer" name="answer" step="any" required>
+        <button type="submit">Send</button>
+    </form>
+
+    <div id="results" style="display: none;">
+        <h2>Results</h2>
+        <div id="resultDiv">
+            <p id="resultText" style="display: inline;">Solution:</p>
+            <div id="solution" style="display: inline;"></div>
+        </div>
+        <table id="results">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Name</th>
+                    <th>Answer</th>
+                    <th>Difference</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        let currentQuestion;
+        const socketIO = io();
+
+        setDisabled(true);
+        getQuestion();
+        getClosed();
+
+        document.getElementById('answerForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const name = document.getElementById('name').value;
+            const answer = document.getElementById('answer').value;
+
+            try {
+                const response = await fetch('/addAnswer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, answer })
+                });
+
+                if (!response.ok) {
+                    alert('Error sending answer.');
+                }
+                else {
+                    setDisabled(true)
+                    showMessageToast();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error sending answer.');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const nameInput = document.getElementById('name');
+            const storedName = localStorage.getItem('name');
+            if (storedName) {
+                nameInput.value = storedName;
+            }
+
+            nameInput.addEventListener('input', function () {
+                localStorage.setItem('name', nameInput.value);
+            });
+        });
+
+        socketIO.on("newQuestion", (newQuestion) => {
+            handleNewQuestion(newQuestion);
+        });
+
+        socketIO.on("isClosed", (isClosed) => {
+            handleIsClosed(isClosed);
+        });
+
+        socketIO.on("isRevealed", (isRevealed) => {
+            handleIsRevealed(isRevealed);
+        });
+
+        function showMessageToast() {
+            const toast = document.createElement('div');
+            toast.textContent = 'Answer successfully sent';
+            toast.className = 'toast';
+            document.body.appendChild(toast);
+            const timeOut = setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        function setDisabled(value) {
+            document.getElementById('answerForm').querySelectorAll('input, button').forEach(element => {
+                element.disabled = value;
+            });
+        }
+
+        function showResults() {
+            document.getElementById('results').style.display = 'block';
+        }
+
+        function hideResults() {
+            document.getElementById('results').style.display = 'none';
+        }
+
+        function handleNewQuestion(newQuestion) {
+            if (newQuestion) {
+                if (newQuestion !== currentQuestion) {
+                    currentQuestion = newQuestion;
+                    document.getElementById('question').textContent = newQuestion;
+                    setDisabled(false);
+                    hideResults();
+                }
+            }
+        }
+
+        function handleIsClosed(isClosed) {
+            if (isClosed) {
+                setDisabled(true);
+            }
+        }
+
+        function handleIsRevealed(isRevealed) {
+            if (isRevealed) {
+                showResults();
+                getResults();
+                getSolution();
+            }
+        }
+
+        async function getQuestion() {
+            try {
+                const response = await fetch('/getQuestion');
+                if (response.ok) {
+                    const data = await response.json();
+                    handleNewQuestion(data);
+                } else {
+                    document.getElementById('question').textContent = 'Error loading question.';
+                }
+            } catch (error) {
+                console.error('Fehler:', error);
+                document.getElementById('question').textContent = 'Error loading question.';
+            }
+        }
+
+        async function getClosed() {
+            const response = await fetch('/getClosed');
+            if (response.ok) {
+                const result = await response.json();
+                handleIsClosed(result);
+            } else {
+                console.error('Error loading isClosed:', response.status);
+            }
+
+        }
+
+        async function getResults() {
+            const response = await fetch('/getRanking');
+            const results = await response.json();
+            const tbody = document.getElementById('results').querySelector('tbody');
+            tbody.innerHTML = '';
+            let rank = 0;
+            results.forEach(([name, answer, difference]) => {
+                rank++;
+                fillTable(tbody, rank, name, answer, difference);
+            });
+        }
+
+        async function getSolution() {
+            const response = await fetch('/getSolution');
+            const result = await response.json();
+            const answerField = document.getElementById('solution');
+            answerField.textContent = result;
+        }
+
+        function fillTable(table, rank, name, answer, difference) {
+            const row = document.createElement('tr');
+            const rankCell = document.createElement('td');
+            rankCell.textContent = rank;
+            const nameCell = document.createElement('td');
+            nameCell.textContent = name;
+            const answerCell = document.createElement('td');
+            answerCell.textContent = answer;
+            const differenceCell = document.createElement('td');
+            differenceCell.textContent = difference;
+            row.appendChild(rankCell);
+            row.appendChild(nameCell);
+            row.appendChild(answerCell);
+            row.appendChild(differenceCell);
+            table.appendChild(row);
+        }
+    </script>
+</body>
+
+</html>

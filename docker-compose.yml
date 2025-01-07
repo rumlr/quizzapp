@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  quizzapp:
+    image: quizzapp
+    container_name: quizzapp-container
+    ports:
+      - "3000:3000"
+    volumes:
+      - quizzapp_db:/db
+
+volumes:
+  quizzapp_db:

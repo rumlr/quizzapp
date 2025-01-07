@@ -1,0 +1,3 @@
+db/quizzapp.db
+node_modules/
+package-lock.json
