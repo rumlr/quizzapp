@@ -17,7 +17,7 @@ Gravity Quiz App for number estimation questions.
 - Install ts-node to be able to execute Typescript files: ```npm install -g ts-node```
 
 #### Install dependencies
-- Run ```npm install````
+- Run ```npm install```
 
 #### Start app
 - Run ```ts-node src/start.ts```
