@@ -9,7 +9,7 @@ Gravity Quiz App for number estimation questions. It shows a question to multipl
     - Use ```docker-compose.yml``` to automatically create and link a Docker volume for persistency and run the container
     - Manually
         - Create volume: ```docker volume create quizzapp_db```
-        - Run container: ```docker run -d -p 3000:3000 --name quizzapp-container -v quizzapp_db:/db quizzapp```
+        - Run container: ```docker run -d -p 3000:3000 --name quizzapp-container -v quizzapp_db:/app/db quizzapp```
 
 ### Locally
 #### Prerequisites
