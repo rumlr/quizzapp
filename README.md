@@ -21,3 +21,7 @@ Gravity Quiz App for number estimation questions.
 
 #### Start app
 - Run ```ts-node src/start.ts```
+
+## UIs
+- Host UI: http://localhost:3000/host
+- Player UI: http://localhost:3000/player
