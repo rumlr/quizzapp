@@ -1,6 +1,6 @@
 # quizzapp
 
-Gravity Quiz App for number estimation questions.
+Gravity Quiz App for number estimation questions. It shows a question to multiple players and lets them provide their estimation. A ranking of all answers is created and each winner (in case of a tie, the first answer wins) is stored in a database for statistics.
 
 ## How to run
 ### In a docker container
