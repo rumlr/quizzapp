@@ -33,18 +33,18 @@ export class QuizzServer {
 
     public start() {
         this.app.use(express.json());
-        this.app.use(express.static(path.join(__dirname, '..', 'public')));
+        this.app.use(express.static(path.join(__dirname, '..', 'web')));
 
         this.httpServer.listen(this.port, () => {
             console.log(`Server is running at http://localhost:${this.port}`);
         });
 
         this.app.get('/player', (req, res) => {
-            res.sendFile(path.join(__dirname, '..', 'public', 'player.html'));
+            res.sendFile(path.join(__dirname, '..', 'web', 'player.html'));
         });
 
         this.app.get('/host', (req, res) => {
-            res.sendFile(path.join(__dirname, '..', 'public', 'host.html'));
+            res.sendFile(path.join(__dirname, '..', 'web', 'host.html'));
         });
 
         this.app.post('/newQuestion', (req, res) => {
