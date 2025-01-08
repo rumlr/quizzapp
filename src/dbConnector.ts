@@ -6,7 +6,7 @@ export class DbConnector {
     private db: sqlite3.Database;
 
     constructor() {
-        const dbDir = path.join(__dirname, 'db');
+        const dbDir = path.join(__dirname, '..', 'db');
         if (!fs.existsSync(dbDir)) {
             fs.mkdirSync(dbDir);
         }
