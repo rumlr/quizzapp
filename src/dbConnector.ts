@@ -1,9 +1,15 @@
+import fs from 'fs';
+import path from 'path';
 import sqlite3 from 'sqlite3';
 
 export class DbConnector {
     private db: sqlite3.Database;
 
     constructor() {
+        const dbDir = path.join(__dirname, 'db');
+        if (!fs.existsSync(dbDir)) {
+            fs.mkdirSync(dbDir);
+        }
         this.db = new sqlite3.Database('db/quizzapp.db', (err) => {
             if (err) {
                 console.error(err.message);
