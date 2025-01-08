@@ -8,7 +8,9 @@ export class DbConnector {
             if (err) {
                 console.error(err.message);
             }
-            console.log('Connected to the quizzapp database.');
+            else {
+                console.log('Connected to the quizzapp database.');
+            }
         });
         this.createTable();
     }
@@ -18,7 +20,9 @@ export class DbConnector {
             if (err) {
                 console.error(err.message);
             }
-            console.log('Close the database connection.');
+            else {
+                console.log('Connection to the quizzapp database closed.');
+            }
         });
     }
 
