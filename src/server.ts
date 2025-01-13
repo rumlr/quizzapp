@@ -47,6 +47,10 @@ export class QuizzServer {
             res.sendFile(path.join(__dirname, '..', 'web', 'host.html'));
         });
 
+        this.app.get('/history', (req, res) => {
+            res.sendFile(path.join(__dirname, '..', 'web', 'history.html'));
+        });
+
         this.app.post('/newQuestion', (req, res) => {
             this.setNewQuestion(req.body.question, req.body.answer);
             this.socketServer.emit('newQuestion', this.question);
@@ -106,6 +110,14 @@ export class QuizzServer {
                 res.status(500).send(error.message);
             });
         });
+
+        this.app.get('/getAllQuestions', (req, res) => {
+            this.getAllQuestions().then(result => {
+                res.json(result);
+            }).catch(error => {
+                res.status(500).send(error.message);
+            });
+        });
     }
 
     private setNewQuestion(question: string, answer: number) {
@@ -133,5 +145,9 @@ export class QuizzServer {
 
     private getWinnerRanking() {
         return this.dbConnector.getWinnerRanking();
+    }
+
+    private getAllQuestions() {
+        return this.dbConnector.getQuestions();
     }
 }

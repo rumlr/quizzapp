@@ -25,3 +25,17 @@ Gravity Quiz App for number estimation questions. It shows a question to multipl
 ## UIs
 - Host UI: http://localhost:3000/host
 - Player UI: http://localhost:3000/player
+- Listing of question history: http://localhost:3000/history
+
+## How to manually add an entry to the database
+Use the following script (the date must be in the format "dd.MM.yyyy"):
+
+```sh
+ts-node src/addWinner.ts <date> <question> <solution> <closest answer> <winner>
+```
+
+e.g.
+
+```sh
+ts-node src/addWinner.ts "31.12.2024" "How many days did this year have?" 366 365 Martina
+```
