@@ -1,2 +1,2 @@
 #!/bin/bash
-docker build -t quizzapp .
+docker build --network=host -t quizzapp:latest .
