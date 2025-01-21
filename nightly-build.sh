@@ -11,6 +11,6 @@ else
   $LOCAL/docker-build.sh
 
   docker compose -f $LOCAL/docker-compose.yml down
-  docker-compose -f $LOCAL/docker-compose.yml up -d
+  docker compose -f $LOCAL/docker-compose.yml up -d
 
 fi
