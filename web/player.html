@@ -12,15 +12,13 @@
             background-color: #f4f4f4;
             margin: 0;
             padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
         }
 
         h1 {
-            color: #333;
-            font-size: 2.5em;
-            margin-top: 20px;
+            background-color: #4CAF50;
+            color: white;
+            padding: 20px;
+            text-align: center;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -120,7 +118,7 @@
 
         .statistics-button {
             position: absolute;
-            top: 20px;
+            top: 120px;
             right: 20px;
             background-color: #28a745;
             color: #fff;
@@ -133,43 +131,52 @@
         .statistics-button:hover {
             background-color: #218838;
         }
+
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 50px;
+        }
     </style>
     <script src="/socket.io/socket.io.js"></script>
 </head>
 
 <body>
-    <button class="statistics-button" onclick="openStatistics()">Statistics</button>
     <h1>
         <img src="icon.png" alt="Icon" width="40" height="40">
         Gravity Quiz App
     </h1>
-    <h2 id="question">Waiting for question...</h2>
-    <form id="answerForm">
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name" required>
-        <label for="answer">Answer:</label>
-        <input type="text" id="answer" name="answer" oninput="validateNumberInput(event)">
-        <button type="submit">Send</button>
-    </form>
+    <button class="statistics-button" onclick="openStatistics()">Statistics</button>
+    <div class="main-container">
+        <h2 id="question">Waiting for question...</h2>
+        <form id="answerForm">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required>
+            <label for="answer">Answer:</label>
+            <input type="text" id="answer" name="answer" oninput="validateNumberInput(event)">
+            <button type="submit">Send</button>
+        </form>
 
-    <div id="results" style="display: none;">
-        <h2>Results</h2>
-        <div id="resultDiv">
-            <p id="resultText" style="display: inline;">Solution:</p>
-            <div id="solution" style="display: inline;"></div>
+        <div id="results" style="display: none;">
+            <h2>Results</h2>
+            <div id="resultDiv">
+                <p id="resultText" style="display: inline;">Solution:</p>
+                <div id="solution" style="display: inline;"></div>
+            </div>
+            <table id="results">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Name</th>
+                        <th>Answer</th>
+                        <th>Deviation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
         </div>
-        <table id="results">
-            <thead>
-                <tr>
-                    <th>Rank</th>
-                    <th>Name</th>
-                    <th>Answer</th>
-                    <th>Deviation</th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
     </div>
 
     <script>
