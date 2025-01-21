@@ -19,6 +19,13 @@
             color: white;
             padding: 20px;
             text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        h1 img {
+            margin-right: 10px;
         }
 
         div {
@@ -105,7 +112,10 @@
 </head>
 
 <body>
-    <h1>Gravity Quiz App</h1>
+    <h1>
+        <img src="icon.png" alt="Icon" width="40" height="40">
+        Gravity Quiz App
+    </h1>
     <div>
         <input type="text" id="question" placeholder="Enter question">
         <input type="text" id="answer" step="any" placeholder="Enter answer" oninput="validateNumberInput(event)">

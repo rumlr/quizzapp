@@ -21,6 +21,13 @@
             color: #333;
             font-size: 2.5em;
             margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        h1 img {
+            margin-right: 10px;
         }
 
         h2 {
@@ -132,7 +139,10 @@
 
 <body>
     <button class="statistics-button" onclick="openStatistics()">Statistics</button>
-    <h1>Gravity Quiz App</h1>
+    <h1>
+        <img src="icon.png" alt="Icon" width="40" height="40">
+        Gravity Quiz App
+    </h1>
     <h2 id="question">Waiting for question...</h2>
     <form id="answerForm">
         <label for="name">Name:</label>
