@@ -109,11 +109,28 @@
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
+
+        .statistics-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #28a745;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .statistics-button:hover {
+            background-color: #218838;
+        }
     </style>
     <script src="/socket.io/socket.io.js"></script>
 </head>
 
 <body>
+    <button class="statistics-button" onclick="openStatistics()">Statistics</button>
     <h1>Gravity Quiz App</h1>
     <h2 id="question">Waiting for question...</h2>
     <form id="answerForm">
@@ -313,6 +330,10 @@
             row.appendChild(answerCell);
             row.appendChild(differenceCell);
             table.appendChild(row);
+        }
+
+        function openStatistics() {
+            window.open('/statistics', '_blank');
         }
     </script>
 </body>

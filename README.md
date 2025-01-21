@@ -26,7 +26,7 @@ Gravity Quiz App for number estimation questions. It shows a question to multipl
 ## UIs
 - Host UI: http://localhost:3000/host
 - Player UI: http://localhost:3000/player
-- Listing of question history: http://localhost:3000/history
+- Listing of question history: http://localhost:3000/statistics
 
 ## How to manually add an entry to the database
 Use the following script (the date must be in the format "dd.MM.yyyy"):

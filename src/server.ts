@@ -49,8 +49,8 @@ export class QuizzServer {
             res.sendFile(path.join(__dirname, '..', 'web', 'host.html'));
         });
 
-        this.app.get('/history', (req, res) => {
-            res.sendFile(path.join(__dirname, '..', 'web', 'history.html'));
+        this.app.get('/statistics', (req, res) => {
+            res.sendFile(path.join(__dirname, '..', 'web', 'statistics.html'));
         });
 
         this.app.post('/newQuestion', (req, res) => {

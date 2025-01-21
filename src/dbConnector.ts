@@ -55,10 +55,9 @@ export class DbConnector {
             });
         });
     }
-
     public getQuestions() {
         return new Promise((resolve, reject) => {
-            this.db.all(`SELECT * FROM questions`, (err, rows) => {
+            this.db.all(`SELECT * FROM questions ORDER BY date DESC`, (err, rows) => {
                 if (err) {
                     reject(err);
                 } else {
