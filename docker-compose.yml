@@ -12,5 +12,10 @@ services:
       com.centurylinklabs.watchtower.enable: false
       caddy: "import rpa {{upstreams 3000}} quiz _"
 
+networks:
+  lan:
+    external: true
+
 volumes:
   db:
+
