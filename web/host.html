@@ -107,7 +107,7 @@
     <h1>Gravity Quiz App</h1>
     <div>
         <input type="text" id="question" placeholder="Enter question">
-        <input type="number" id="answer" step="any" placeholder="Enter answer">
+        <input type="text" id="answer" step="any" placeholder="Enter answer" oninput="validateNumberInput(event)">
         <div class="button-container">
             <button onclick="sendNewQuestion()">Set Question</button>
             <button onclick="sendCloseQuestion()">Close Question</button>
@@ -242,6 +242,16 @@
 
         function openStatistics() {
             window.open('/statistics', '_blank');
+        }
+
+        function validateNumberInput(event) {
+            const input = event.target;
+            const value = input.value;
+            const regex = /^\d*\.?\d*$/;
+
+            if (!regex.test(value)) {
+                input.value = value.slice(0, -1);
+            }
         }
     </script>
 </body>
