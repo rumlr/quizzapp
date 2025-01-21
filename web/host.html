@@ -137,7 +137,7 @@
 
         socketIO.on("newAnswer", (answers) => {
             if (!answers.length) return;
-            updateResultsTableIntermediate(answers);
+            updateResultsTable(answers);
         });
 
         async function sendNewQuestion() {
@@ -158,9 +158,8 @@
             const response = await fetch('/closeQuestion');
             const results = await response.json();
             if (!results.length) return;
-            updateResultsTableFinal(results);
+            updateResultsTable(results);
             showMessageToast('Question closed');
-            getWinnerRanking();
         }
 
         async function sendRevealResult() {
@@ -172,29 +171,7 @@
             }
         }
 
-        async function getWinnerRanking() {
-            try {
-                const response = await fetch('/getWinnerRanking');
-                if (response.ok) {
-                    const data = await response.json();
-                    if (!data.length) return;
-                    updateStatisticsTable(data);
-                }
-            } catch (error) {
-                console.error('Error:', error);
-            }
-        }
-
-        function updateResultsTableIntermediate(results) {
-            const tbody = document.getElementById('resultsTable').querySelector('tbody');
-            tbody.innerHTML = '';
-            results.forEach(([name, answer]) => {
-                fillResultsTable(tbody, "", name, answer, "");
-            });
-            showResults();
-        }
-
-        function updateResultsTableFinal(results) {
+        function updateResultsTable(results) {
             const tbody = document.getElementById('resultsTable').querySelector('tbody');
             tbody.innerHTML = '';
             let rank = 0;

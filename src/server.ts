@@ -70,7 +70,8 @@ export class QuizzServer {
             }
             const { name, answer } = req.body;
             this.answers.set(name, answer);
-            this.socketServer.emit('newAnswer', Array.from(this.answers.entries()));
+            this.calculateRanking();
+            this.socketServer.emit('newAnswer', this.sortedAnswers);
             res.send('Answer added');
         });
 
