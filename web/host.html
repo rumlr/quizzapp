@@ -133,7 +133,6 @@
 
     <script>
         const socketIO = io();
-        getWinnerRanking();
 
         socketIO.on("newAnswer", (answers) => {
             if (!answers.length) return;

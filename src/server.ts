@@ -69,7 +69,13 @@ export class QuizzServer {
                 return;
             }
             const { name, answer } = req.body;
-            this.answers.set(name, answer);
+            const parsedAnswer = parseFloat(answer);
+            if (isNaN(parsedAnswer)) {
+                res.status(400).send('Invalid answer');
+                return;
+            }
+            logWithTime(`New answer from ${name}: ${parsedAnswer}`);
+            this.answers.set(name, parsedAnswer);
             this.calculateRanking();
             this.socketServer.emit('newAnswer', this.sortedAnswers);
             res.send('Answer added');
