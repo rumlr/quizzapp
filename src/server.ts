@@ -1,8 +1,10 @@
+import { exec } from 'child_process';
 import express from 'express';
 import { createServer } from 'http';
 import path from 'path';
 import { Server } from "socket.io";
 import { DbConnector } from './dbConnector';
+import { errWithTime, logWithTime } from './util';
 
 export class QuizzServer {
 
@@ -36,7 +38,7 @@ export class QuizzServer {
         this.app.use(express.static(path.join(__dirname, '..', 'web')));
 
         this.httpServer.listen(this.port, () => {
-            console.log(`Server is running at http://localhost:${this.port}`);
+            logWithTime(`Server is running at http://localhost:${this.port}`);
         });
 
         this.app.get('/player', (req, res) => {
@@ -108,6 +110,7 @@ export class QuizzServer {
                 res.json(result);
             }).catch(error => {
                 res.status(500).send(error.message);
+                errWithTime(error.message);
             });
         });
 
@@ -116,6 +119,23 @@ export class QuizzServer {
                 res.json(result);
             }).catch(error => {
                 res.status(500).send(error.message);
+                errWithTime(error.message);
+            });
+        });
+
+        this.app.get('/getLogs', (req, res) => {
+            exec('tail -n 100 logs.log', (error, stdout, stderr) => {
+                if (error) {
+                    res.status(500).send(`Error: ${error.message}`);
+                    errWithTime(error.message);
+                    return;
+                }
+                if (stderr) {
+                    res.status(500).send(`Stderr: ${stderr}`);
+                    errWithTime(stderr);
+                    return;
+                }
+                res.send(`<pre>${stdout}</pre>`);
             });
         });
     }

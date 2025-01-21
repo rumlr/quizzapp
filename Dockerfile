@@ -22,5 +22,10 @@ RUN npx tsc
 # Exponiere den Port, auf dem die App läuft
 EXPOSE 3000
 
+# Setze die Ausführungsrechte für das Startskript
+RUN chmod +x ./start.sh
+
+RUN npm rebuild
+
 # Definiere den Befehl zum Starten der App
-CMD ["ts-node", "src/start.ts"]
+ENTRYPOINT ["./start.sh"]

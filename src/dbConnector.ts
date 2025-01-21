@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import sqlite3 from 'sqlite3';
+import { errWithTime, logWithTime } from './util';
 
 export class DbConnector {
     private db: sqlite3.Database;
@@ -12,10 +13,10 @@ export class DbConnector {
         }
         this.db = new sqlite3.Database('db/quizzapp.db', (err) => {
             if (err) {
-                console.error(err.message);
+                errWithTime(err.message);
             }
             else {
-                console.log('Connected to the quizzapp database.');
+                logWithTime('Connected to the quizzapp database.');
             }
         });
         this.createTable();
@@ -24,10 +25,10 @@ export class DbConnector {
     public closeDbConnection() {
         this.db.close((err) => {
             if (err) {
-                console.error(err.message);
+                errWithTime(err.message);
             }
             else {
-                console.log('Connection to the quizzapp database closed.');
+                logWithTime('Connection to the quizzapp database closed.');
             }
         });
     }
@@ -49,7 +50,7 @@ export class DbConnector {
         this.db.serialize(() => {
             this.db.run(`INSERT INTO questions (date, question, solution, closestAnswer, winner) VALUES (?, ?, ?, ?, ?)`, [date, question, solution, closestAnswer, winner], (err) => {
                 if (err) {
-                    console.error(err.message);
+                    errWithTime(err.message);
                 }
             });
         });

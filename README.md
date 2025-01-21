@@ -21,6 +21,7 @@ Gravity Quiz App for number estimation questions. It shows a question to multipl
 
 #### Start app
 - Run ```ts-node src/start.ts```
+- ```./start.sh``` starts the app and writes all output into ```logs.log```file
 
 ## UIs
 - Host UI: http://localhost:3000/host

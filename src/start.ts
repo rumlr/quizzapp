@@ -1,12 +1,13 @@
 import { DbConnector } from "./dbConnector";
 import { QuizzServer } from "./server";
+import { logWithTime } from "./util";
 
 const dbConnector = new DbConnector();
 const server = new QuizzServer(dbConnector);
 server.start();
 
 process.on("SIGINT", function () {
-  console.log("\nStopping server");
+  logWithTime("Stopping application...");
   dbConnector.closeDbConnection();
   process.exit();
 });
