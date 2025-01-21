@@ -1,13 +1,21 @@
-version: '3.8'
-
 services:
-  quizzapp:
-    image: quizzapp
-    container_name: quizzapp-container
-    ports:
-      - "3000:3000"
+  quiz:
+    image: quizzapp:latest
+    container_name: quiz
+    networks:
+      - lan
+#    ports:
+#      - 3000:3000
     volumes:
-      - quizzapp_db:/app/db
+      - db:/app/db
+    labels:
+      com.centurylinklabs.watchtower.enable: false
+      caddy: "import rpa {{upstreams 3000}} quiz _"
+
+networks:
+  lan:
+    external: true
 
 volumes:
-  quizzapp_db:
+  db:
+
