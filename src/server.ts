@@ -53,6 +53,10 @@ export class QuizzServer {
             res.sendFile(path.join(__dirname, '..', 'web', 'statistics.html'));
         });
 
+        this.app.get('/icon.png', (req, res) => {
+            res.sendFile(path.join(__dirname, '..', 'web', 'icon.png'));
+        });
+
         this.app.post('/newQuestion', (req, res) => {
             this.setNewQuestion(req.body.question, req.body.answer);
             this.socketServer.emit('newQuestion', this.question);
@@ -74,7 +78,6 @@ export class QuizzServer {
                 res.status(400).send('Invalid answer');
                 return;
             }
-            logWithTime(`New answer from ${name}: ${parsedAnswer}`);
             this.answers.set(name, parsedAnswer);
             this.calculateRanking();
             this.socketServer.emit('newAnswer', this.sortedAnswers);
