@@ -54,7 +54,7 @@ export class QuizzServer {
         });
 
         this.app.get('/icon.png', (req, res) => {
-            res.sendFile(path.join(__dirname, '..', 'web', 'icon.png'));
+            res.sendFile(path.join(__dirname, '..', 'web/images', 'icon.png'));
         });
 
         this.app.post('/newQuestion', (req, res) => {
