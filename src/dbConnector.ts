@@ -55,6 +55,7 @@ export class DbConnector {
             });
         });
     }
+
     public getQuestions() {
         return new Promise((resolve, reject) => {
             this.db.all(`SELECT * FROM questions ORDER BY date DESC`, (err, rows) => {
@@ -69,12 +70,21 @@ export class DbConnector {
 
     public getWinnerRanking() {
         return new Promise((resolve, reject) => {
-            this.db.all(`SELECT winner, COUNT(*) as count FROM questions GROUP BY winner ORDER BY count DESC`, (err, rows) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(rows);
-            }
+            const query = `
+                SELECT
+                    winner,
+                    COUNT(*) as count,
+                    RANK() OVER (ORDER BY COUNT(*) DESC) as rank
+                FROM questions
+                GROUP BY winner
+                ORDER BY rank
+            `;
+            this.db.all(query, (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(rows);
+                }
             });
         });
     }

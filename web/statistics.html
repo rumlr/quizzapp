@@ -144,12 +144,10 @@
         function updateStatisticsTable(winsData) {
             const tbody = document.getElementById('statisticsTable').querySelector('tbody');
             tbody.innerHTML = '';
-            let rank = 0;
             winsData.forEach(entry => {
-                rank++;
                 const row = document.createElement('tr');
                 const rankCell = document.createElement('td');
-                rankCell.textContent = rank;
+                rankCell.textContent = entry.rank;
                 const nameCell = document.createElement('td');
                 nameCell.textContent = entry.winner;
                 const countCell = document.createElement('td');
