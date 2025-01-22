@@ -251,10 +251,10 @@
         function validateNumberInput(event) {
             const input = event.target;
             const value = input.value;
-            const regex = /^\d*\.?\d*$/;
+            const regex = /^-?\d*\.?\d*$/;
 
             if (!regex.test(value)) {
-                input.value = value.slice(0, -1);
+            input.value = value.slice(0, -1);
             }
         }
     </script>
