@@ -22,7 +22,6 @@ export class QuizzServer {
     private sortedAnswers: [string, number, number][] = [];     // [name, answer, distance]
     private question: string = "";
     private solution: number = 0;
-    private isRevealed: boolean = false;
     private isClosed: boolean = false;
     private hostSubscriberId: string = "";
 
@@ -85,13 +84,18 @@ export class QuizzServer {
         });
 
         this.app.get('/revealResult', (req, res) => {
-            this.isRevealed = true;
             this.socketServer.emit('results', {
                 solution: this.solution,
                 ranking: this.sortedAnswers
             });
             this.storeWinner();
             res.send('Result revealed');
+        });
+
+        this.app.get('/clearQuestion', (req, res) => {
+            this.clearQuestion();
+            this.socketServer.emit('newQuestion', this.question);
+            res.send('Question cleared');
         });
 
         // player services
@@ -159,13 +163,18 @@ export class QuizzServer {
         });
     }
 
-    private setNewQuestion(question: string, answer: number) {
-        this.question = question;
-        this.solution = answer;
-        this.isRevealed = false;
+    private clearQuestion() {
+        this.question = "";
+        this.solution = 0;
         this.isClosed = false;
         this.sortedAnswers = [];
         this.answers.clear();
+    }
+
+    private setNewQuestion(question: string, answer: number) {
+        this.clearQuestion();
+        this.question = question;
+        this.solution = answer;
     }
 
     private calculateRanking() {

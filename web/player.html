@@ -69,7 +69,7 @@
         }
 
         button:disabled {
-            background-color: #ccc;
+            background-color: #a5d6a7;
             cursor: not-allowed;
         }
 
@@ -190,7 +190,6 @@
 
         setDisabled(true);
         getQuestion();
-        // getClosed();
 
         document.getElementById('answerForm').addEventListener('submit', async function (event) {
             event.preventDefault();
@@ -275,6 +274,11 @@
                     setDisabled(false);
                     hideResults();
                 }
+            }
+            else {
+                document.getElementById('question').textContent = 'Waiting for question...';
+                setDisabled(true);
+                hideResults();
             }
         }
 
