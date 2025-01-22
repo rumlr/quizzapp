@@ -162,6 +162,8 @@
             updateResultsTable(answers);
         });
 
+        const subscriberID = Math.random().toString(36).substring(7);
+
         async function sendNewQuestion() {
             const question = document.getElementById('question').value;
             const answer = document.getElementById('answer').value;
@@ -173,6 +175,7 @@
                 body: JSON.stringify({ question, answer })
             });
             hideResults();
+            socketIO.emit('subscribe', subscriberID); // subscribe to answer events with unique id, so that no other clients receive them
             showMessageToast('Question set');
         }
 
@@ -183,6 +186,7 @@
             } else {
                 console.error('Error closing question');
             }
+            socketIO.emit('unsubscribe', subscriberID);
         }
 
         async function sendRevealResult() {

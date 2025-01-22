@@ -24,6 +24,7 @@ export class QuizzServer {
     private solution: number = 0;
     private isRevealed: boolean = false;
     private isClosed: boolean = false;
+    private subscriberId: string = "";
 
 
     constructor(dbConnector: DbConnector) {
@@ -31,6 +32,16 @@ export class QuizzServer {
         this.app = express();
         this.httpServer = createServer(this.app);
         this.socketServer = new Server(this.httpServer);
+        this.socketServer.on('connection', (socket) => {
+            socket.on('subscribe', (topic) => {
+                socket.join(topic);
+                this.subscriberId = topic;
+            });
+            socket.on('unsubscribe', (topic) => {
+                socket.leave(topic);
+                this.subscriberId = "";
+            });
+        });
     }
 
     public start() {
@@ -80,7 +91,7 @@ export class QuizzServer {
             }
             this.answers.set(name, parsedAnswer);
             this.calculateRanking();
-            this.socketServer.emit('newAnswer', this.sortedAnswers);
+            this.socketServer.to(this.subscriberId).emit('newAnswer', this.sortedAnswers);
             res.send('Answer added');
         });
 
