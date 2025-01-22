@@ -1,5 +1,6 @@
 #!/usr/bin/env zsh
 
+# needs to be set to directory where quiz is living
 LOCAL="/usr/local/pkgs/quizzapp"
 
 if git -C $LOCAL fetch origin && git -C $LOCAL diff --quiet HEAD origin/main; then
@@ -7,6 +8,7 @@ if git -C $LOCAL fetch origin && git -C $LOCAL diff --quiet HEAD origin/main; th
   exit 0
 
 else
+  # pull, build image, stop container and restart
   git -C $LOCAL pull
   $LOCAL/docker-build.sh
 
