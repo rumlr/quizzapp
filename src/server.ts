@@ -24,7 +24,7 @@ export class QuizzServer {
     private solution: number = 0;
     private isRevealed: boolean = false;
     private isClosed: boolean = false;
-    private subscriberId: string = "";
+    private hostSubscriberId: string = "";
 
 
     constructor(dbConnector: DbConnector) {
@@ -35,11 +35,11 @@ export class QuizzServer {
         this.socketServer.on('connection', (socket) => {
             socket.on('subscribe', (topic) => {
                 socket.join(topic);
-                this.subscriberId = topic;
+                this.hostSubscriberId = topic;
             });
             socket.on('unsubscribe', (topic) => {
                 socket.leave(topic);
-                this.subscriberId = "";
+                this.hostSubscriberId = "";
             });
         });
     }
@@ -51,6 +51,8 @@ export class QuizzServer {
         this.httpServer.listen(this.port, () => {
             logWithTime(`Server is running at http://localhost:${this.port}`);
         });
+
+        // client pages
 
         this.app.get('/player', (req, res) => {
             res.sendFile(path.join(__dirname, '..', 'web', 'player.html'));
@@ -68,14 +70,37 @@ export class QuizzServer {
             res.sendFile(path.join(__dirname, '..', 'web/images', 'icon.png'));
         });
 
+        // host services
+
         this.app.post('/newQuestion', (req, res) => {
             this.setNewQuestion(req.body.question, req.body.answer);
             this.socketServer.emit('newQuestion', this.question);
             res.send('New question set');
         });
 
+        this.app.get('/closeQuestion', (req, res) => {
+            this.isClosed = true;
+            this.socketServer.emit('isClosed', true);
+            res.json('Question closed');
+        });
+
+        this.app.get('/revealResult', (req, res) => {
+            this.isRevealed = true;
+            this.socketServer.emit('results', {
+                solution: this.solution,
+                ranking: this.sortedAnswers
+            });
+            this.storeWinner();
+            res.send('Result revealed');
+        });
+
+        // player services
+
         this.app.get('/getQuestion', (req, res) => {
-            res.json(this.question);
+            res.json({
+                question: this.question,
+                isClosed: this.isClosed     // required to retrieve state when loading player ui
+            });
         });
 
         this.app.post('/addAnswer', (req, res) => {
@@ -91,39 +116,11 @@ export class QuizzServer {
             }
             this.answers.set(name, parsedAnswer);
             this.calculateRanking();
-            this.socketServer.to(this.subscriberId).emit('newAnswer', this.sortedAnswers);
+            this.socketServer.to(this.hostSubscriberId).emit('newAnswer', this.sortedAnswers);
             res.send('Answer added');
         });
 
-        this.app.get('/getSolution', (req, res) => {
-            if (this.isRevealed) {
-                res.json(this.solution);
-            }
-            else {
-                res.status(400).send('Question is still open');
-            }
-        });
-
-        this.app.get('/revealResult', (req, res) => {
-            this.isRevealed = true;
-            this.socketServer.emit('isRevealed', true);
-            this.storeWinner();
-            res.send('Result revealed');
-        });
-
-        this.app.get('/closeQuestion', (req, res) => {
-            this.isClosed = true;
-            this.socketServer.emit('isClosed', true);
-            res.json('Question closed');
-        });
-
-        this.app.get('/getRanking', (req, res) => {
-            res.json(this.sortedAnswers);
-        });
-
-        this.app.get('/getClosed', (req, res) => {
-            res.json(this.isClosed);
-        });
+        // statistics services
 
         this.app.get('/getWinnerRanking', (req, res) => {
             this.getWinnerRanking().then(result => {
@@ -142,6 +139,8 @@ export class QuizzServer {
                 errWithTime(error.message);
             });
         });
+
+        // debugging services
 
         this.app.get('/getLogs', (req, res) => {
             exec('tail -n 100 logs.log', (error, stdout, stderr) => {

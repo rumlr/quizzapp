@@ -190,7 +190,7 @@
 
         setDisabled(true);
         getQuestion();
-        getClosed();
+        // getClosed();
 
         document.getElementById('answerForm').addEventListener('submit', async function (event) {
             event.preventDefault();
@@ -239,8 +239,8 @@
             handleIsClosed(isClosed);
         });
 
-        socketIO.on("isRevealed", (isRevealed) => {
-            handleIsRevealed(isRevealed);
+        socketIO.on("results", (results) => {
+            handleResults(results);
         });
 
         function showMessageToast() {
@@ -285,11 +285,10 @@
             }
         }
 
-        function handleIsRevealed(isRevealed) {
-            if (isRevealed) {
+        function handleResults(results) {
+            if (results) {
                 showResults();
-                getResults();
-                getSolution();
+                fillResultsTable(results);
             }
         }
 
@@ -297,8 +296,9 @@
             try {
                 const response = await fetch('/getQuestion');
                 if (response.ok) {
-                    const data = await response.json();
-                    handleNewQuestion(data);
+                    const result = await response.json();
+                    handleNewQuestion(result.question);
+                    handleIsClosed(result.isClosed);
                 } else {
                     document.getElementById('question').textContent = 'Error loading question.';
                 }
@@ -308,51 +308,30 @@
             }
         }
 
-        async function getClosed() {
-            const response = await fetch('/getClosed');
-            if (response.ok) {
-                const result = await response.json();
-                handleIsClosed(result);
-            } else {
-                console.error('Error loading isClosed:', response.status);
-            }
+        function fillResultsTable(result) {
+            const solutionField = document.getElementById('solution');
+            solutionField.textContent = result.solution;
 
-        }
-
-        async function getResults() {
-            const response = await fetch('/getRanking');
-            const results = await response.json();
-            const tbody = document.getElementById('results').querySelector('tbody');
-            tbody.innerHTML = '';
+            const table = document.getElementById('results').querySelector('tbody');
+            table.innerHTML = '';
             let rank = 0;
-            results.forEach(([name, answer, difference]) => {
+            result.ranking.forEach(([name, answer, difference]) => {
                 rank++;
-                fillTable(tbody, rank, name, answer, difference);
+                const row = document.createElement('tr');
+                const rankCell = document.createElement('td');
+                rankCell.textContent = rank;
+                const nameCell = document.createElement('td');
+                nameCell.textContent = name;
+                const answerCell = document.createElement('td');
+                answerCell.textContent = answer;
+                const differenceCell = document.createElement('td');
+                differenceCell.textContent = difference;
+                row.appendChild(rankCell);
+                row.appendChild(nameCell);
+                row.appendChild(answerCell);
+                row.appendChild(differenceCell);
+                table.appendChild(row);
             });
-        }
-
-        async function getSolution() {
-            const response = await fetch('/getSolution');
-            const result = await response.json();
-            const answerField = document.getElementById('solution');
-            answerField.textContent = result;
-        }
-
-        function fillTable(table, rank, name, answer, difference) {
-            const row = document.createElement('tr');
-            const rankCell = document.createElement('td');
-            rankCell.textContent = rank;
-            const nameCell = document.createElement('td');
-            nameCell.textContent = name;
-            const answerCell = document.createElement('td');
-            answerCell.textContent = answer;
-            const differenceCell = document.createElement('td');
-            differenceCell.textContent = difference;
-            row.appendChild(rankCell);
-            row.appendChild(nameCell);
-            row.appendChild(answerCell);
-            row.appendChild(differenceCell);
-            table.appendChild(row);
         }
 
         function openStatistics() {
