@@ -107,6 +107,18 @@
             margin-left: auto;
         }
 
+        @media (max-width: 360px) {
+            .button-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .statistics-button {
+                margin-left: 5px;
+                margin-top: 10px;
+            }
+        }
+
     </style>
     <script src="/socket.io/socket.io.js"></script>
 </head>
