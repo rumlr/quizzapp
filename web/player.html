@@ -30,8 +30,6 @@
 
         h2 {
             color: #555;
-            max-width: 75%;
-            text-align: center;
         }
 
         form {
@@ -140,6 +138,11 @@
             align-items: center;
             margin-top: 50px;
         }
+
+        .question {
+            max-width: 75%;
+            text-align: center;
+        }
     </style>
     <script src="/socket.io/socket.io.js"></script>
 </head>
@@ -151,7 +154,7 @@
     </h1>
     <button class="statistics-button" onclick="openStatistics()">Statistics</button>
     <div class="main-container">
-        <h2 id="question">Waiting for question...</h2>
+        <h2 id="question" class="question">Waiting for question...</h2>
         <form id="answerForm">
             <label for="name">Name:</label>
             <input type="text" id="name" name="name" required>

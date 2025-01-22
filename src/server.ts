@@ -96,15 +96,14 @@ export class QuizzServer {
         this.app.get('/revealResult', (req, res) => {
             this.isRevealed = true;
             this.socketServer.emit('isRevealed', true);
+            this.storeWinner();
             res.send('Result revealed');
         });
 
         this.app.get('/closeQuestion', (req, res) => {
             this.isClosed = true;
-            this.calculateRanking();
-            this.storeWinner();
             this.socketServer.emit('isClosed', true);
-            res.json(this.sortedAnswers);
+            res.json('Question closed');
         });
 
         this.app.get('/getRanking', (req, res) => {
@@ -166,6 +165,7 @@ export class QuizzServer {
     }
 
     private storeWinner() {
+        this.calculateRanking();
         if (this.sortedAnswers.length === 0) {
             return;
         }

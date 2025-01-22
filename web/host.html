@@ -178,10 +178,11 @@
 
         async function sendCloseQuestion() {
             const response = await fetch('/closeQuestion');
-            const results = await response.json();
-            if (!results.length) return;
-            updateResultsTable(results);
-            showMessageToast('Question closed');
+            if (response.ok) {
+                showMessageToast('Question closed');
+            } else {
+                console.error('Error closing question');
+            }
         }
 
         async function sendRevealResult() {
