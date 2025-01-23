@@ -148,8 +148,8 @@ export class QuizzServer {
 
         // debugging services
 
-        this.app.get('/getLogs', (req, res) => {
-            exec('tail -n 100 logs.log', (error, stdout, stderr) => {
+        this.app.get('/logs', (req, res) => {
+            exec('tail -n 100 db/logs.log', (error, stdout, stderr) => {
                 if (error) {
                     res.status(500).send(`Error: ${error.message}`);
                     errWithTime(error.message);
