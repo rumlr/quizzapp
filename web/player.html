@@ -56,7 +56,7 @@
         }
 
         button {
-            background-color: #28a745;
+            background-color: #4CAF50;
             color: #fff;
             padding: 10px 20px;
             border: none;
@@ -65,7 +65,7 @@
         }
 
         button:hover {
-            background-color: #218838;
+            background-color: #45a049;
         }
 
         button:disabled {
@@ -114,7 +114,7 @@
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: #28a745;
+            background-color: #4CAF50;
             color: #fff;
             padding: 10px 20px;
             border-radius: 5px;
@@ -126,7 +126,7 @@
             position: absolute;
             top: 120px;
             right: 20px;
-            background-color: #28a745;
+            background-color: #4CAF50;
             color: #fff;
             padding: 10px 20px;
             border: none;
@@ -135,7 +135,7 @@
         }
 
         .statistics-button:hover {
-            background-color: #218838;
+            background-color: #45a049;
         }
 
         .main-container {
@@ -299,7 +299,9 @@
         }
 
         function handleIsClosed(isClosed) {
-            setDisabled(isClosed);
+            if (isClosed) {
+                setDisabled(true);
+            }
             if (currentQuestion) {
                 document.getElementById('question').textContent = currentQuestion + (isClosed ? " (closed)" : "");
             }
