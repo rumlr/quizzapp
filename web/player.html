@@ -80,6 +80,7 @@
             padding: 20px;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
         }
 
         table {
@@ -99,7 +100,11 @@
             background-color: #f8f8f8;
         }
 
-        #resultDiv {
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        #solutionDiv {
             margin-bottom: 20px;
             color: #333;
         }
@@ -114,6 +119,7 @@
             padding: 10px 20px;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
         }
 
         .statistics-button {
@@ -143,6 +149,16 @@
             max-width: 75%;
             text-align: center;
         }
+
+        .right-align {
+            text-align: right;
+        }
+
+        @media (max-width: 360px) {
+            #results {
+                max-width: 300px;
+            }
+        }
     </style>
     <script src="/socket.io/socket.io.js"></script>
 </head>
@@ -165,17 +181,17 @@
 
         <div id="results" style="display: none;">
             <h2>Results</h2>
-            <div id="resultDiv">
-                <p id="resultText" style="display: inline;">Solution:</p>
+            <div id="solutionDiv">
+                <p id="solutionLabel" style="display: inline;">Solution:</p>
                 <div id="solution" style="display: inline;"></div>
             </div>
-            <table id="results">
+            <table id="resultsTable">
                 <thead>
                     <tr>
                         <th>Rank</th>
                         <th>Name</th>
-                        <th>Answer</th>
-                        <th>Deviation</th>
+                        <th class="right-align">Answer</th>
+                        <th class="right-align">Deviation</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -283,9 +299,9 @@
         }
 
         function handleIsClosed(isClosed) {
-            if (isClosed) {
-                setDisabled(true);
-                document.getElementById('question').textContent = document.getElementById('question').textContent + " (closed)";
+            setDisabled(isClosed);
+            if (currentQuestion) {
+                document.getElementById('question').textContent = currentQuestion + (isClosed ? " (closed)" : "");
             }
         }
 
@@ -328,8 +344,10 @@
                 nameCell.textContent = name;
                 const answerCell = document.createElement('td');
                 answerCell.textContent = answer;
+                answerCell.classList.add('right-align');
                 const differenceCell = document.createElement('td');
                 differenceCell.textContent = difference;
+                differenceCell.classList.add('right-align');
                 row.appendChild(rankCell);
                 row.appendChild(nameCell);
                 row.appendChild(answerCell);

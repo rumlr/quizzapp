@@ -73,6 +73,8 @@ export class QuizzServer {
 
         this.app.post('/newQuestion', (req, res) => {
             this.setNewQuestion(req.body.question, req.body.answer);
+            this.isClosed = false;
+            this.socketServer.emit('isClosed', false);
             this.socketServer.emit('newQuestion', this.question);
             res.send('New question set');
         });

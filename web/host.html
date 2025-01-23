@@ -28,12 +28,17 @@
             margin-right: 10px;
         }
 
+        h2 {
+            color: #555;
+        }
+
         div {
             margin: 20px;
             padding: 20px;
             background-color: white;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
         }
 
         input[type="text"],
@@ -76,6 +81,7 @@
             padding: 12px;
             text-align: left;
             border-bottom: 1px solid #ddd;
+            color: #333;
         }
 
         th {
@@ -96,6 +102,7 @@
             padding: 10px 20px;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
         }
 
         .button-container {
@@ -110,6 +117,10 @@
 
         .statistics-button {
             margin-left: auto;
+        }
+
+        .right-align {
+            text-align: right;
         }
 
         @media (max-width: 360px) {
@@ -151,8 +162,8 @@
                 <tr>
                     <th>Rank</th>
                     <th>Name</th>
-                    <th>Answer</th>
-                    <th>Deviation</th>
+                    <th class="right-align">Answer</th>
+                    <th class="right-align">Deviation</th>
                 </tr>
             </thead>
             <tbody>
@@ -186,6 +197,7 @@
             hideResults();
             setButtonDisabled("btnNewQuestion", true);
             setButtonDisabled("btnCloseQuestion", false);
+            setButtonDisabled("btnRevealResult", true);
             showMessageToast('Question set');
         }
 
@@ -243,8 +255,10 @@
                 nameCell.textContent = name;
                 const answerCell = document.createElement('td');
                 answerCell.textContent = answer;
+                answerCell.className = 'right-align';
                 const differenceCell = document.createElement('td');
                 differenceCell.textContent = difference;
+                differenceCell.className = 'right-align';
                 row.appendChild(rankCell);
                 row.appendChild(nameCell);
                 row.appendChild(answerCell);
