@@ -68,18 +68,26 @@
 
         .percentage {
             display: flex;
-            align-items: right;
+            min-width: 200px;
         }
 
         .percentage-text {
-            margin-bottom: 5px;
+            width: 70px;
+        }
+
+        .percentage-bar-container {
+            width: calc(100% - 70px);
+            height: 7px;
+            background-color: #f2f2f2;
+            border-radius: 5px;
+            margin-top: 5px;
         }
 
         .percentage-bar {
             background-color: #4CAF50;
             height: 7px;
-            margin-right: 5px;
         }
+
     </style>
 </head>
 
@@ -113,7 +121,7 @@
                     <th>Question</th>
                     <th>Solution</th>
                     <th>Closest Answer</th>
-                    <th>Percentage</th>
+                    <th>How close?</th>
                     <th>Winner</th>
                 </tr>
             </thead>
@@ -139,9 +147,11 @@
                             <td class="right-align">${item.solution}</td>
                             <td class="right-align">${item.closestAnswer}</td>
                             <td class="right-align">
-                                <div class="percentage-text">${item.percentage.toFixed(1)} %</div>
                                 <div class="percentage">
-                                    <div class="percentage-bar" style="width: ${item.percentage}%;"></div>
+                                    <div class="percentage-bar-container">
+                                        <div class="percentage-bar" style="width: ${item.percentage}%;"></div>
+                                    </div>
+                                    <div class="percentage-text">${item.percentage.toFixed(1)} %</div>
                                 </div>
                             </td>
                             <td>${item.winner}</td>
