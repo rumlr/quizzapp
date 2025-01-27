@@ -154,6 +154,29 @@
             text-align: right;
         }
 
+        .percentage {
+            display: flex;
+            min-width: 200px;
+        }
+
+        .percentage-text {
+            width: 80px;
+        }
+
+        .percentage-bar-container {
+            width: calc(100% - 80px);
+            height: 7px;
+            background-color: #f2f2f2;
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+
+        .percentage-bar {
+            background-color: #4CAF50;
+            height: 7px;
+            margin-right: 5px;
+        }
+
         @media (max-width: 360px) {
             #results {
                 max-width: 300px;
@@ -192,6 +215,7 @@
                         <th>Name</th>
                         <th class="right-align">Answer</th>
                         <th class="right-align">Deviation</th>
+                        <th class="right-align">How close?</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -337,23 +361,23 @@
             const table = document.getElementById('results').querySelector('tbody');
             table.innerHTML = '';
             let rank = 0;
-            result.ranking.forEach(([name, answer, difference]) => {
+            result.ranking.forEach(([name, answer, deviation, percentage]) => {
                 rank++;
                 const row = document.createElement('tr');
-                const rankCell = document.createElement('td');
-                rankCell.textContent = rank;
-                const nameCell = document.createElement('td');
-                nameCell.textContent = name;
-                const answerCell = document.createElement('td');
-                answerCell.textContent = answer;
-                answerCell.classList.add('right-align');
-                const differenceCell = document.createElement('td');
-                differenceCell.textContent = difference;
-                differenceCell.classList.add('right-align');
-                row.appendChild(rankCell);
-                row.appendChild(nameCell);
-                row.appendChild(answerCell);
-                row.appendChild(differenceCell);
+                row.innerHTML = `
+                    <td>${rank}</td>
+                    <td>${name}</td>
+                    <td class="right-align">${answer}</td>
+                    <td class="right-align">${deviation}</td>
+                    <td class="right-align">
+                        <div class="percentage">
+                            <div class="percentage-bar-container">
+                                <div class="percentage-bar" style="width: ${percentage}%;"></div>
+                            </div>
+                            <div class="percentage-text">${percentage.toFixed(1)} %</div>
+                        </div>
+                    </td>
+                `;
                 table.appendChild(row);
             });
         }

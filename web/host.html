@@ -32,7 +32,7 @@
             color: #555;
         }
 
-        div {
+        .container-div {
             margin: 20px;
             padding: 20px;
             background-color: white;
@@ -123,6 +123,29 @@
             text-align: right;
         }
 
+        .percentage {
+            display: flex;
+            margin-left: 10px;
+        }
+
+        .percentage-text {
+            width: 80px;
+        }
+
+        .percentage-bar-container {
+            width: calc(100% - 80px);
+            height: 7px;
+            background-color: #f2f2f2;
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+
+        .percentage-bar {
+            background-color: #4CAF50;
+            height: 7px;
+            margin-right: 5px;
+        }
+
         @media (max-width: 360px) {
             .button-container {
                 flex-direction: column;
@@ -143,7 +166,7 @@
         <img src="icon.png" alt="Icon" width="40" height="40">
         Gravity Quiz App
     </h1>
-    <div>
+    <div class="container-div">
         <input type="text" id="question" placeholder="Enter question" oninput="checkInputs()">
         <input type="text" id="answer" step="any" placeholder="Enter answer"
             oninput="validateNumberInput(event); checkInputs()">
@@ -155,7 +178,7 @@
             <button class="statistics-button" onclick="onStatisticsClicked()">Statistics</button>
         </div>
     </div>
-    <div id="results" style="display: none;">
+    <div id="results" class="container-div" style="display: none;">
         <h2>Results</h2>
         <table id="resultsTable">
             <thead>
@@ -164,6 +187,7 @@
                     <th>Name</th>
                     <th class="right-align">Answer</th>
                     <th class="right-align">Deviation</th>
+                    <th class="right-align">How close?</th>
                 </tr>
             </thead>
             <tbody>
@@ -250,23 +274,23 @@
             const table = document.getElementById('resultsTable').querySelector('tbody');
             table.innerHTML = '';
             let rank = 0;
-            results.forEach(([name, answer, difference]) => {
+            results.forEach(([name, answer, deviation, percentage]) => {
                 rank++;
                 const row = document.createElement('tr');
-                const rankCell = document.createElement('td');
-                rankCell.textContent = rank;
-                const nameCell = document.createElement('td');
-                nameCell.textContent = name;
-                const answerCell = document.createElement('td');
-                answerCell.textContent = answer;
-                answerCell.className = 'right-align';
-                const differenceCell = document.createElement('td');
-                differenceCell.textContent = difference;
-                differenceCell.className = 'right-align';
-                row.appendChild(rankCell);
-                row.appendChild(nameCell);
-                row.appendChild(answerCell);
-                row.appendChild(differenceCell);
+                row.innerHTML = `
+                    <td>${rank}</td>
+                    <td>${name}</td>
+                    <td class="right-align">${answer}</td>
+                    <td class="right-align">${deviation}</td>
+                    <td class="right-align">
+                        <div class="percentage">
+                            <div class="percentage-bar-container">
+                                <div class="percentage-bar" style="width: ${percentage}%;"></div>
+                            </div>
+                            <div class="percentage-text">${percentage.toFixed(1)} %</div>
+                        </div>
+                    </td>
+                `;
                 table.appendChild(row);
             });
             showResults();

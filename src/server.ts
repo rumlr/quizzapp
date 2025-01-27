@@ -19,7 +19,7 @@ export class QuizzServer {
 
     // app variables
     private answers = new Map<string, number>();                // key: name, value: answer
-    private sortedAnswers: [string, number, number][] = [];     // [name, answer, distance]
+    private sortedAnswers: [string, number, number, number][] = [];     // [name, answer, deviation, percentage]
     private question: string = "";
     private solution: number = 0;
     private isClosed: boolean = false;
@@ -180,8 +180,10 @@ export class QuizzServer {
     }
 
     private calculateRanking() {
-        this.sortedAnswers = Array.from(this.answers.entries()).map(([name, value]): [string, number, number] => {
-            return [name, value, parseFloat(Math.abs(value - this.solution).toFixed(2))];
+        this.sortedAnswers = Array.from(this.answers.entries()).map(([name, value]): [string, number, number, number] => {
+            const deviation = parseFloat(Math.abs(value - this.solution).toFixed(2));
+            const percentage = Math.max(0, parseFloat(((1 - Math.abs((value - this.solution) / this.solution)) * 100).toFixed(1)));
+            return [name, value, deviation, percentage];
         }).sort((a, b) => a[2] - b[2]);
     }
 
