@@ -74,8 +74,8 @@
         }
 
         #results {
-            width: 100%;
-            max-width: 600px;
+            width: 80%;
+            max-width: 800px;
             background-color: #fff;
             padding: 20px;
             border-radius: 5px;
@@ -182,6 +182,15 @@
                 max-width: 300px;
             }
         }
+
+        @media (max-width: 600px) {
+            #resultsTable th:nth-child(5),
+            #resultsTable td:nth-child(5),
+            #resultsTable th:nth-child(6),
+            #resultsTable td:nth-child(6) {
+                display: none;
+            }
+        }
     </style>
     <script src="/socket.io/socket.io.js"></script>
 </head>
@@ -216,6 +225,7 @@
                         <th class="right-align">Answer</th>
                         <th class="right-align">Deviation</th>
                         <th class="right-align">How close?</th>
+                        <th class="right-align">Time</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -358,25 +368,24 @@
             const solutionField = document.getElementById('solution');
             solutionField.textContent = result.solution;
 
-            const table = document.getElementById('results').querySelector('tbody');
+            const table = document.getElementById('resultsTable').querySelector('tbody');
             table.innerHTML = '';
-            let rank = 0;
-            result.ranking.forEach(([name, answer, deviation, percentage]) => {
-                rank++;
+            result.ranking.forEach(entry => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${rank}</td>
-                    <td>${name}</td>
-                    <td class="right-align">${answer}</td>
-                    <td class="right-align">${deviation}</td>
+                    <td>${entry.rank}</td>
+                    <td>${entry.name}</td>
+                    <td class="right-align">${entry.answer}</td>
+                    <td class="right-align">${entry.deviation}</td>
                     <td class="right-align">
                         <div class="percentage">
                             <div class="percentage-bar-container">
-                                <div class="percentage-bar" style="width: ${percentage}%;"></div>
+                                <div class="percentage-bar" style="width: ${entry.percentage}%;"></div>
                             </div>
-                            <div class="percentage-text">${percentage.toFixed(1)} %</div>
+                            <div class="percentage-text">${entry.percentage.toFixed(1)} %</div>
                         </div>
                     </td>
+                    <td class="right-align">${entry.time.toFixed(1)} s</td>
                 `;
                 table.appendChild(row);
             });
