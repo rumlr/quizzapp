@@ -202,8 +202,8 @@ export class QuizzServer {
             deviation: deviation,
             percentage: percentage,
             time: time
-            }
-        }).sort((a, b) => a.deviation - b.deviation);
+            };
+        }).sort((a, b) => a.deviation === b.deviation ? a.time - b.time : a.deviation - b.deviation);
 
         this.sortedAnswers.forEach((answer, index) => {
             answer.rank = index + 1;
