@@ -209,8 +209,7 @@
         const socketIO = io();
 
         socketIO.on("newAnswer", (answers) => {
-            if (!answers.length) return;
-            updateResultsTable(answers);
+            handleAnswers(answers);
         });
 
         const subscriberID = Math.random().toString(36).substring(7);
@@ -233,6 +232,8 @@
             setButtonDisabled("btnCloseQuestion", false);
             setButtonDisabled("btnRevealResult", true);
             showMessageToast('Question set');
+
+            startPollingAnswers();
         }
 
         async function onCloseQuestionClicked() {
@@ -240,9 +241,7 @@
             if (response.ok) {
                 showMessageToast('Question closed');
                 const answers = await response.json();
-                if (answers.length) {
-                    updateResultsTable(answers);
-                }
+                handleAnswers(answers);
             } else {
                 console.error('Error closing question');
             }
@@ -251,6 +250,8 @@
 
             setButtonDisabled("btnCloseQuestion", true);
             setButtonDisabled("btnRevealResult", false);
+
+            stopPollingAnswers();
         }
 
         async function onRevealResultClicked() {
@@ -278,6 +279,11 @@
 
         function onStatisticsClicked() {
             window.open('/statistics', '_blank');
+        }
+
+        function handleAnswers(answers) {
+            if (!answers.length) return;
+            updateResultsTable(answers);
         }
 
         function updateResultsTable(results) {
@@ -344,6 +350,26 @@
             setButtonDisabled("btnNewQuestion", disabled);
             setButtonDisabled("btnClear", disabled);
         }
+
+        // answer polling is implemented as a redunandancy to the unreliable socket.io connection
+        let intervalId;
+
+        function startPollingAnswers() {
+            intervalId = setInterval(getAnswers, 3000);
+        }
+
+        function stopPollingAnswers() {
+            clearInterval(intervalId);
+        }
+
+        async function getAnswers() {
+            const response = await fetch(`/getAnswers?hostId=${subscriberID}`);
+            if (response.ok) {
+                const answers = await response.json();
+                handleAnswers(answers);
+            }
+        }
+
     </script>
 </body>
 

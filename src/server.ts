@@ -94,6 +94,15 @@ export class QuizzServer {
             res.json(this.sortedAnswers);
         });
 
+        this.app.get('/getAnswers', (req, res) => {         // service for answer polling is implemented as a redunandancy to the unreliable socket.io connection
+            const hostId = req.query.hostId as string;
+            if (hostId !== this.hostSubscriberId) {
+                res.status(403).send('Forbidden');
+                return;
+            }
+            res.json(this.sortedAnswers);
+        });
+
         this.app.get('/revealResult', (req, res) => {
             this.socketServer.emit('results', {
                 solution: this.solution,
