@@ -178,7 +178,7 @@
     <div class="container-div">
         <input type="text" id="question" placeholder="Enter question" oninput="checkInputs()">
         <input type="text" id="answer" step="any" placeholder="Enter answer"
-            oninput="validateNumberInput(event); checkInputs()">
+            oninput="validateNumberInput(event); checkInputs()" autocomplete="off">
         <div class="button-container">
             <button id="btnNewQuestion" onclick="onNewQuestionClicked()" disabled>Set Question</button>
             <button id="btnCloseQuestion" onclick="onCloseQuestionClicked()" disabled>Close Question</button>
