@@ -94,4 +94,21 @@ export class DbConnector {
             });
         });
     }
+
+    public updateWinnerBookToBookinho() {
+        return new Promise((resolve, reject) => {
+            const query = `
+                UPDATE questions
+                SET winner = 'Bookinho'
+                WHERE LOWER(winner) LIKE 'book%'
+            `;
+            this.db.run(query, function(err) {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(this.changes);
+                }
+            });
+        });
+    }
 }
