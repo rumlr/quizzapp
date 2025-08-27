@@ -95,11 +95,11 @@ export class DbConnector {
         });
     }
 
-    public updateWinnerBookToBookinho() {
+    public updateWinnerBookToMaggus() {
         return new Promise((resolve, reject) => {
             const query = `
                 UPDATE questions
-                SET winner = 'Bookinho'
+                SET winner = 'Maggus'
                 WHERE LOWER(winner) LIKE 'book%'
             `;
             this.db.run(query, function(err) {
