@@ -227,6 +227,7 @@ export class QuizzServer {
         const winner = this.sortedAnswers[0].name;
         const closestAnswer = this.sortedAnswers[0].answer;
         this.dbConnector.insertQuestion(new Date().toISOString(), this.question, this.solution.toString(), closestAnswer.toString(), winner);
+				this.dbConnector.updateWinnerBookToMaggus();
     }
 
     private getWinnerRanking() {
