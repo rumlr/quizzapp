@@ -38,6 +38,10 @@
             margin-top: 20px;
         }
 
+        #statisticsTable {
+            table-layout: fixed;
+        }
+
         th,
         td {
             padding: 10px;
@@ -47,6 +51,30 @@
 
         th {
             background-color: #f2f2f2;
+        }
+
+        #statisticsTable th:nth-child(1),
+        #statisticsTable td:nth-child(1) {
+            width: 10%;
+            min-width: max-content;
+        }
+
+        #statisticsTable th:nth-child(2),
+        #statisticsTable td:nth-child(2) {
+            width: 60%;
+            min-width: max-content;
+        }
+
+        #statisticsTable th:nth-child(3),
+        #statisticsTable td:nth-child(3) {
+            width: 15%;
+            min-width: max-content;
+        }
+
+        #statisticsTable th:nth-child(4),
+        #statisticsTable td:nth-child(4) {
+            width: 15%;
+            min-width: max-content;
         }
 
         .right-align {
@@ -88,6 +116,49 @@
             height: 7px;
         }
 
+        /* Mobile styles */
+        @media screen and (max-width: 768px) {
+            /* Hide Average Deviation column on mobile */
+            #statisticsTable th:nth-child(4),
+            #statisticsTable td:nth-child(4) {
+                display: none;
+            }
+
+            /* Adjust remaining column widths on mobile */
+            #statisticsTable th:nth-child(1),
+            #statisticsTable td:nth-child(1) {
+                width: 15%;
+            }
+
+            #statisticsTable th:nth-child(2),
+            #statisticsTable td:nth-child(2) {
+                width: 55%;
+            }
+
+            #statisticsTable th:nth-child(3),
+            #statisticsTable td:nth-child(3) {
+                width: 30%;
+            }
+
+            /* Make Question History table scrollable horizontally */
+            #history .container-div {
+                overflow-x: auto;
+            }
+
+            #historyTable {
+                width: max-content;
+                min-width: 100%;
+            }
+
+            /* Allow Question column to wrap (max 3 lines) */
+            #historyTable td:nth-child(2) {
+                max-width: 250px;
+                white-space: normal;
+                word-wrap: break-word;
+                overflow-wrap: break-word;
+            }
+        }
+
     </style>
 </head>
 
@@ -104,7 +175,8 @@
                 <tr>
                     <th>Rank</th>
                     <th>Name</th>
-                    <th>Wins</th>
+                    <th class="right-align">Wins</th>
+                    <th class="right-align">Average Deviation</th>
                 </tr>
             </thead>
             <tbody>
@@ -194,9 +266,14 @@
                 nameCell.textContent = entry.winner;
                 const countCell = document.createElement('td');
                 countCell.textContent = entry.count;
+                countCell.classList.add('right-align');
+                const deviationCell = document.createElement('td');
+                deviationCell.textContent = entry.averageDeviation + ' %';
+                deviationCell.classList.add('right-align');
                 row.appendChild(rankCell);
                 row.appendChild(nameCell);
                 row.appendChild(countCell);
+                row.appendChild(deviationCell);
                 tbody.appendChild(row);
             });
         }
@@ -284,23 +361,28 @@
                 afterDraw: (chart) => {
                     const ctx = chart.ctx;
                     const chartArea = chart.chartArea;
-                    const legendMargin = 30; // Space between chart and legend
+                    const isMobile = window.innerWidth <= 768;
+
+                    // Adjust spacing and sizes for mobile
+                    const legendMargin = isMobile ? 15 : 30;
                     const legendX = chartArea.right + legendMargin;
+                    const itemHeight = isMobile ? 18 : 25;
+                    const lineWidth = isMobile ? 25 : 40;
+                    const textGap = isMobile ? 6 : 10;
+                    const fontSize = isMobile ? '10px' : '12px';
 
                     // Calculate total legend height and center it vertically in chart area
-                    const itemHeight = 25;
                     const totalLegendHeight = chart.data.datasets.length * itemHeight;
                     const chartAreaMiddle = (chartArea.top + chartArea.bottom) / 2;
                     let currentY = chartAreaMiddle - (totalLegendHeight / 2);
 
                     ctx.save();
-                    ctx.font = '12px Arial';
+                    ctx.font = `${fontSize} Arial`;
 
                     // Draw legend items from top to bottom
                     for (let i = 0; i < chart.data.datasets.length; i++) {
                         const dataset = chart.data.datasets[i];
-                        const lineWidth = 40;
-                        const lineY = currentY + 12;
+                        const lineY = currentY + (isMobile ? 9 : 12);
 
                         // Draw line with same thickness as chart lines
                         ctx.strokeStyle = dataset.borderColor;
@@ -314,7 +396,7 @@
                         ctx.fillStyle = '#666';
                         ctx.textAlign = 'left';
                         ctx.textBaseline = 'middle';
-                        ctx.fillText(dataset.label, legendX + lineWidth + 10, lineY);
+                        ctx.fillText(dataset.label, legendX + lineWidth + textGap, lineY);
 
                         currentY += itemHeight; // Space between legend items
                     }
@@ -343,7 +425,7 @@
                     layout: {
                         padding: {
                             left: 0,
-                            right: 170 // Space for custom legend with extra room for text
+                            right: window.innerWidth <= 768 ? 100 : 170 // Less space on mobile
                         }
                     },
                     scales: {
