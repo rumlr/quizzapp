@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
@@ -110,6 +110,7 @@
             <tbody>
             </tbody>
         </table>
+        <canvas id="winnerChart" style="margin-top: 30px; max-height: 400px;"></canvas>
     </div>
 
     <div id="history" class="container-div">
@@ -131,11 +132,15 @@
         </table>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        let allQuestionsData = [];
+
         document.addEventListener('DOMContentLoaded', function () {
             fetch('/getAllQuestions')
                 .then(response => response.json())
                 .then(data => {
+                    allQuestionsData = data;
                     const tableBody = document.querySelector('#historyTable tbody');
                     data.forEach(item => {
                         const row = document.createElement('tr');
@@ -158,6 +163,7 @@
                         `;
                         tableBody.appendChild(row);
                     });
+                    createWinnerChart(data);
                 })
                 .catch(error => console.error('Error fetching data:', error));
 
@@ -192,6 +198,178 @@
                 row.appendChild(nameCell);
                 row.appendChild(countCell);
                 tbody.appendChild(row);
+            });
+        }
+
+        function createWinnerChart(data) {
+            // Sort data chronologically (oldest first)
+            const sortedData = [...data].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            // Get all unique winners and count total wins for each
+            const winnerStats = {};
+            sortedData.forEach(item => {
+                winnerStats[item.winner] = (winnerStats[item.winner] || 0) + 1;
+            });
+
+            // Sort winners by total wins (descending)
+            const winners = Object.keys(winnerStats).sort((a, b) => winnerStats[b] - winnerStats[a]);
+
+            // Define distinct colors for better visibility
+            const distinctColors = [
+                '#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231',
+                '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe',
+                '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000',
+                '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080'
+            ];
+
+            // Create cumulative data for each winner
+            const datasets = winners.map((winner, index) => {
+                const winCounts = [];
+                let cumulativeWins = 0;
+
+                sortedData.forEach(item => {
+                    if (item.winner === winner) {
+                        cumulativeWins++;
+                    }
+                    winCounts.push(cumulativeWins);
+                });
+
+                // Use distinct colors from the predefined palette
+                const color = distinctColors[index % distinctColors.length];
+
+                return {
+                    label: winner,
+                    data: winCounts,
+                    borderColor: color,
+                    backgroundColor: color,
+                    tension: 0.1,
+                    fill: false,
+                    pointRadius: 0,
+                    pointHoverRadius: 0
+                };
+            });
+
+            // Create labels (month names) - only show each month once
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                              'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const labels = sortedData.map((item, index, array) => {
+                const date = new Date(item.date);
+                const monthName = monthNames[date.getMonth()];
+
+                // Only show month if it's the first occurrence or different from previous
+                if (index === 0) return monthName;
+                const prevDate = new Date(array[index - 1].date);
+                const prevMonth = prevDate.getMonth();
+
+                return date.getMonth() !== prevMonth ? monthName : '';
+            });
+
+            const ctx = document.getElementById('winnerChart').getContext('2d');
+
+            // Custom plugin to draw legend manually with proper spacing
+            const customLegendPlugin = {
+                id: 'customLegend',
+                afterDraw: (chart) => {
+                    const ctx = chart.ctx;
+                    const chartArea = chart.chartArea;
+                    const legendMargin = 30; // Space between chart and legend
+                    const legendX = chartArea.right + legendMargin;
+
+                    // Calculate total legend height and center it vertically in chart area
+                    const itemHeight = 25;
+                    const totalLegendHeight = chart.data.datasets.length * itemHeight;
+                    const chartAreaMiddle = (chartArea.top + chartArea.bottom) / 2;
+                    let currentY = chartAreaMiddle - (totalLegendHeight / 2);
+
+                    ctx.save();
+                    ctx.font = '12px Arial';
+
+                    // Draw legend items from top to bottom
+                    for (let i = 0; i < chart.data.datasets.length; i++) {
+                        const dataset = chart.data.datasets[i];
+                        const lineWidth = 40;
+                        const lineY = currentY + 12;
+
+                        // Draw line with same thickness as chart lines
+                        ctx.strokeStyle = dataset.borderColor;
+                        ctx.lineWidth = 3;
+                        ctx.beginPath();
+                        ctx.moveTo(legendX, lineY);
+                        ctx.lineTo(legendX + lineWidth, lineY);
+                        ctx.stroke();
+
+                        // Draw label
+                        ctx.fillStyle = '#666';
+                        ctx.textAlign = 'left';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(dataset.label, legendX + lineWidth + 10, lineY);
+
+                        currentY += itemHeight; // Space between legend items
+                    }
+
+                    ctx.restore();
+                }
+            };
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false // Hide default legend
+                        },
+                        title: {
+                            display: false
+                        }
+                    },
+                    layout: {
+                        padding: {
+                            left: 0,
+                            right: 170 // Space for custom legend with extra room for text
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Wins'
+                            },
+                            ticks: {
+                                stepSize: 1
+                            },
+                            grid: {
+                                display: true
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: false
+                            },
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45,
+                                autoSkip: false
+                            },
+                            grid: {
+                                display: true,
+                                drawOnChartArea: true,
+                                color: (context) => {
+                                    // Only draw grid line if there's a label (month change)
+                                    const label = context.chart.data.labels[context.index];
+                                    return label ? 'rgba(0, 0, 0, 0.1)' : 'transparent';
+                                }
+                            }
+                        }
+                    }
+                },
+                plugins: [customLegendPlugin]
             });
         }
     </script>
