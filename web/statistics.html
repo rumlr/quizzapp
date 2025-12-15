@@ -222,16 +222,39 @@
                 '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080'
             ];
 
-            // Create cumulative data for each winner
+            // Get the year from the data (assume all data is from one year)
+            const year = sortedData.length > 0 ? new Date(sortedData[0].date).getFullYear() : new Date().getFullYear();
+
+            // Create month names for the full year
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                              'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+            // Map each data point to a fractional month index (0.0 to 11.99)
+            const dataPointsWithMonthIndex = sortedData.map(item => {
+                const date = new Date(item.date);
+                const month = date.getMonth();
+                const day = date.getDate();
+                const daysInMonth = new Date(date.getFullYear(), month + 1, 0).getDate();
+                const fractionalMonth = month + (day - 1) / daysInMonth;
+                return {
+                    ...item,
+                    monthIndex: fractionalMonth
+                };
+            });
+
+            // Create cumulative data for each winner with x positions
             const datasets = winners.map((winner, index) => {
-                const winCounts = [];
+                const dataPoints = [];
                 let cumulativeWins = 0;
 
-                sortedData.forEach(item => {
+                dataPointsWithMonthIndex.forEach(item => {
                     if (item.winner === winner) {
                         cumulativeWins++;
                     }
-                    winCounts.push(cumulativeWins);
+                    dataPoints.push({
+                        x: item.monthIndex,
+                        y: cumulativeWins
+                    });
                 });
 
                 // Use distinct colors from the predefined palette
@@ -239,30 +262,19 @@
 
                 return {
                     label: winner,
-                    data: winCounts,
+                    data: dataPoints,
                     borderColor: color,
                     backgroundColor: color,
                     tension: 0.1,
                     fill: false,
                     pointRadius: 0,
-                    pointHoverRadius: 0
+                    pointHoverRadius: 0,
+                    spanGaps: false
                 };
             });
 
-            // Create labels (month names) - only show each month once
-            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                              'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            const labels = sortedData.map((item, index, array) => {
-                const date = new Date(item.date);
-                const monthName = monthNames[date.getMonth()];
-
-                // Only show month if it's the first occurrence or different from previous
-                if (index === 0) return monthName;
-                const prevDate = new Date(array[index - 1].date);
-                const prevMonth = prevDate.getMonth();
-
-                return date.getMonth() !== prevMonth ? monthName : '';
-            });
+            // Create labels for all 12 months
+            const labels = monthNames;
 
             const ctx = document.getElementById('winnerChart').getContext('2d');
 
@@ -349,21 +361,25 @@
                             }
                         },
                         x: {
+                            type: 'linear',
+                            min: 0,
+                            max: 12,
                             title: {
                                 display: false
                             },
                             ticks: {
                                 maxRotation: 45,
                                 minRotation: 45,
-                                autoSkip: false
+                                stepSize: 1,
+                                callback: function(value) {
+                                    return monthNames[Math.round(value)] || '';
+                                }
                             },
                             grid: {
                                 display: true,
                                 drawOnChartArea: true,
                                 color: (context) => {
-                                    // Only draw grid line if there's a label (month change)
-                                    const label = context.chart.data.labels[context.index];
-                                    return label ? 'rgba(0, 0, 0, 0.1)' : 'transparent';
+                                    return Number.isInteger(context.tick.value) ? 'rgba(0, 0, 0, 0.1)' : 'transparent';
                                 }
                             }
                         }
