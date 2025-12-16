@@ -88,7 +88,18 @@ export class DbConnector {
                 SELECT
                     winner,
                     COUNT(*) as count,
-                    RANK() OVER (ORDER BY COUNT(*) DESC) as rank
+                    RANK() OVER (ORDER BY COUNT(*) DESC) as rank,
+                    ROUND(AVG(
+                        CASE
+                            WHEN CAST(solution AS REAL) = 0 THEN
+                                CASE
+                                    WHEN CAST(closestAnswer AS REAL) = 0 THEN 0
+                                    ELSE 100
+                                END
+                            ELSE
+                                ABS((CAST(solution AS REAL) - CAST(closestAnswer AS REAL)) / CAST(solution AS REAL)) * 100
+                        END
+                    ), 1) as averageDeviation
                 FROM questions
                 GROUP BY winner
                 ORDER BY rank

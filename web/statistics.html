@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
@@ -38,6 +38,10 @@
             margin-top: 20px;
         }
 
+        #statisticsTable {
+            table-layout: fixed;
+        }
+
         th,
         td {
             padding: 10px;
@@ -47,6 +51,30 @@
 
         th {
             background-color: #f2f2f2;
+        }
+
+        #statisticsTable th:nth-child(1),
+        #statisticsTable td:nth-child(1) {
+            width: 10%;
+            min-width: max-content;
+        }
+
+        #statisticsTable th:nth-child(2),
+        #statisticsTable td:nth-child(2) {
+            width: 60%;
+            min-width: max-content;
+        }
+
+        #statisticsTable th:nth-child(3),
+        #statisticsTable td:nth-child(3) {
+            width: 15%;
+            min-width: max-content;
+        }
+
+        #statisticsTable th:nth-child(4),
+        #statisticsTable td:nth-child(4) {
+            width: 15%;
+            min-width: max-content;
         }
 
         .right-align {
@@ -88,6 +116,49 @@
             height: 7px;
         }
 
+        /* Mobile styles */
+        @media screen and (max-width: 768px) {
+            /* Hide Average Deviation column on mobile */
+            #statisticsTable th:nth-child(4),
+            #statisticsTable td:nth-child(4) {
+                display: none;
+            }
+
+            /* Adjust remaining column widths on mobile */
+            #statisticsTable th:nth-child(1),
+            #statisticsTable td:nth-child(1) {
+                width: 15%;
+            }
+
+            #statisticsTable th:nth-child(2),
+            #statisticsTable td:nth-child(2) {
+                width: 55%;
+            }
+
+            #statisticsTable th:nth-child(3),
+            #statisticsTable td:nth-child(3) {
+                width: 30%;
+            }
+
+            /* Make Question History table scrollable horizontally */
+            #history .container-div {
+                overflow-x: auto;
+            }
+
+            #historyTable {
+                width: max-content;
+                min-width: 100%;
+            }
+
+            /* Allow Question column to wrap (max 3 lines) */
+            #historyTable td:nth-child(2) {
+                max-width: 250px;
+                white-space: normal;
+                word-wrap: break-word;
+                overflow-wrap: break-word;
+            }
+        }
+
     </style>
 </head>
 
@@ -104,12 +175,14 @@
                 <tr>
                     <th>Rank</th>
                     <th>Name</th>
-                    <th>Wins</th>
+                    <th class="right-align">Wins</th>
+                    <th class="right-align">Average Deviation</th>
                 </tr>
             </thead>
             <tbody>
             </tbody>
         </table>
+        <canvas id="winnerChart" style="margin-top: 30px; max-height: 400px;"></canvas>
     </div>
 
     <div id="history" class="container-div">
@@ -131,11 +204,15 @@
         </table>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        let allQuestionsData = [];
+
         document.addEventListener('DOMContentLoaded', function () {
             fetch('/getAllQuestions')
                 .then(response => response.json())
                 .then(data => {
+                    allQuestionsData = data;
                     const tableBody = document.querySelector('#historyTable tbody');
                     data.forEach(item => {
                         const row = document.createElement('tr');
@@ -158,6 +235,7 @@
                         `;
                         tableBody.appendChild(row);
                     });
+                    createWinnerChart(data);
                 })
                 .catch(error => console.error('Error fetching data:', error));
 
@@ -188,10 +266,208 @@
                 nameCell.textContent = entry.winner;
                 const countCell = document.createElement('td');
                 countCell.textContent = entry.count;
+                countCell.classList.add('right-align');
+                const deviationCell = document.createElement('td');
+                deviationCell.textContent = entry.averageDeviation + ' %';
+                deviationCell.classList.add('right-align');
                 row.appendChild(rankCell);
                 row.appendChild(nameCell);
                 row.appendChild(countCell);
+                row.appendChild(deviationCell);
                 tbody.appendChild(row);
+            });
+        }
+
+        function createWinnerChart(data) {
+            // Sort data chronologically (oldest first)
+            const sortedData = [...data].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            // Get all unique winners and count total wins for each
+            const winnerStats = {};
+            sortedData.forEach(item => {
+                winnerStats[item.winner] = (winnerStats[item.winner] || 0) + 1;
+            });
+
+            // Sort winners by total wins (descending)
+            const winners = Object.keys(winnerStats).sort((a, b) => winnerStats[b] - winnerStats[a]);
+
+            // Define distinct colors for better visibility
+            const distinctColors = [
+                '#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231',
+                '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe',
+                '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000',
+                '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080'
+            ];
+
+            // Get the year from the data (assume all data is from one year)
+            const year = sortedData.length > 0 ? new Date(sortedData[0].date).getFullYear() : new Date().getFullYear();
+
+            // Create month names for the full year
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                              'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+            // Map each data point to a fractional month index (0.0 to 11.99)
+            const dataPointsWithMonthIndex = sortedData.map(item => {
+                const date = new Date(item.date);
+                const month = date.getMonth();
+                const day = date.getDate();
+                const daysInMonth = new Date(date.getFullYear(), month + 1, 0).getDate();
+                const fractionalMonth = month + (day - 1) / daysInMonth;
+                return {
+                    ...item,
+                    monthIndex: fractionalMonth
+                };
+            });
+
+            // Create cumulative data for each winner with x positions
+            const datasets = winners.map((winner, index) => {
+                const dataPoints = [];
+                let cumulativeWins = 0;
+
+                dataPointsWithMonthIndex.forEach(item => {
+                    if (item.winner === winner) {
+                        cumulativeWins++;
+                    }
+                    dataPoints.push({
+                        x: item.monthIndex,
+                        y: cumulativeWins
+                    });
+                });
+
+                // Use distinct colors from the predefined palette
+                const color = distinctColors[index % distinctColors.length];
+
+                return {
+                    label: winner,
+                    data: dataPoints,
+                    borderColor: color,
+                    backgroundColor: color,
+                    tension: 0.1,
+                    fill: false,
+                    pointRadius: 0,
+                    pointHoverRadius: 0,
+                    spanGaps: false
+                };
+            });
+
+            // Create labels for all 12 months
+            const labels = monthNames;
+
+            const ctx = document.getElementById('winnerChart').getContext('2d');
+
+            // Custom plugin to draw legend manually with proper spacing
+            const customLegendPlugin = {
+                id: 'customLegend',
+                afterDraw: (chart) => {
+                    const ctx = chart.ctx;
+                    const chartArea = chart.chartArea;
+                    const isMobile = window.innerWidth <= 768;
+
+                    // Adjust spacing and sizes for mobile
+                    const legendMargin = isMobile ? 15 : 30;
+                    const legendX = chartArea.right + legendMargin;
+                    const itemHeight = isMobile ? 18 : 25;
+                    const lineWidth = isMobile ? 25 : 40;
+                    const textGap = isMobile ? 6 : 10;
+                    const fontSize = isMobile ? '10px' : '12px';
+
+                    // Calculate total legend height and center it vertically in chart area
+                    const totalLegendHeight = chart.data.datasets.length * itemHeight;
+                    const chartAreaMiddle = (chartArea.top + chartArea.bottom) / 2;
+                    let currentY = chartAreaMiddle - (totalLegendHeight / 2);
+
+                    ctx.save();
+                    ctx.font = `${fontSize} Arial`;
+
+                    // Draw legend items from top to bottom
+                    for (let i = 0; i < chart.data.datasets.length; i++) {
+                        const dataset = chart.data.datasets[i];
+                        const lineY = currentY + (isMobile ? 9 : 12);
+
+                        // Draw line with same thickness as chart lines
+                        ctx.strokeStyle = dataset.borderColor;
+                        ctx.lineWidth = 3;
+                        ctx.beginPath();
+                        ctx.moveTo(legendX, lineY);
+                        ctx.lineTo(legendX + lineWidth, lineY);
+                        ctx.stroke();
+
+                        // Draw label
+                        ctx.fillStyle = '#666';
+                        ctx.textAlign = 'left';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(dataset.label, legendX + lineWidth + textGap, lineY);
+
+                        currentY += itemHeight; // Space between legend items
+                    }
+
+                    ctx.restore();
+                }
+            };
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false // Hide default legend
+                        },
+                        title: {
+                            display: false
+                        }
+                    },
+                    layout: {
+                        padding: {
+                            left: 0,
+                            right: window.innerWidth <= 768 ? 100 : 170 // Less space on mobile
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Wins'
+                            },
+                            ticks: {
+                                stepSize: 1
+                            },
+                            grid: {
+                                display: true
+                            }
+                        },
+                        x: {
+                            type: 'linear',
+                            min: 0,
+                            max: 12,
+                            title: {
+                                display: false
+                            },
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45,
+                                stepSize: 1,
+                                callback: function(value) {
+                                    return monthNames[Math.round(value)] || '';
+                                }
+                            },
+                            grid: {
+                                display: true,
+                                drawOnChartArea: true,
+                                color: (context) => {
+                                    return Number.isInteger(context.tick.value) ? 'rgba(0, 0, 0, 0.1)' : 'transparent';
+                                }
+                            }
+                        }
+                    }
+                },
+                plugins: [customLegendPlugin]
             });
         }
     </script>
