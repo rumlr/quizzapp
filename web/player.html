@@ -104,14 +104,9 @@
             background-color: #f5f5f5;
         }
 
-        #solutionDiv {
-            margin-bottom: 20px;
-            color: #333;
+        #submitBtn {
+            width: 100px;
         }
-
-				#submitBtn {
-						width: 100px;
-				}
 
         .toast {
             position: fixed;
@@ -216,11 +211,10 @@
         </form>
 
         <div id="results" style="display: none;">
-            <h2>Results</h2>
-            <div id="solutionDiv">
+            <h2>
                 <p id="solutionLabel" style="display: inline;">Solution:</p>
                 <div id="solution" style="display: inline;"></div>
-            </div>
+            </h2>
             <table id="resultsTable">
                 <thead>
                     <tr>
@@ -263,7 +257,7 @@
                     alert('Error sending answer.');
                 }
                 else {
-										toggleResendBtnText(true);
+                    toggleResendBtnText(true);
                     showMessageToast();
                 }
             } catch (error) {
@@ -306,9 +300,9 @@
             }, 3000);
         }
 
-				function toggleResendBtnText(isResendActive) {
-						document.getElementById('submitBtn').textContent = isResendActive ? 'Resend' : 'Send';
-				}
+        function toggleResendBtnText(isResendActive) {
+            document.getElementById('submitBtn').textContent = isResendActive ? 'Resend' : 'Send';
+        }
 
         function setDisabled(value) {
             document.getElementById('answerForm').querySelectorAll('input, button').forEach(element => {
@@ -330,7 +324,7 @@
                     currentQuestion = newQuestion;
                     document.getElementById('question').textContent = newQuestion;
                     setDisabled(false);
-										toggleResendBtnText(false);
+                    toggleResendBtnText(false);
                     hideResults();
                 }
             }
