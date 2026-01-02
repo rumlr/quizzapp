@@ -151,15 +151,6 @@ export class QuizzServer {
 
         // statistics services
 
-        this.app.get('/getWinnerRanking', (req, res) => {
-            this.getWinnerRanking().then(result => {
-                res.json(result);
-            }).catch(error => {
-                res.status(500).send(error.message);
-                errWithTime(error.message);
-            });
-        });
-
         this.app.get('/getAllQuestions', (req, res) => {
             this.getAllQuestions().then(result => {
                 res.json(result);
@@ -233,10 +224,6 @@ export class QuizzServer {
         const closestAnswer = this.sortedAnswers[0].answer;
         this.dbConnector.insertQuestion(new Date().toISOString(), this.question, this.solution.toString(), closestAnswer.toString(), winner);
 				this.dbConnector.updateWinnerBookToMaggus();
-    }
-
-    private getWinnerRanking() {
-        return this.dbConnector.getWinnerRanking();
     }
 
     private getAllQuestions() {

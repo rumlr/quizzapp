@@ -116,6 +116,56 @@
             height: 7px;
         }
 
+        /* Year Filter Styles */
+        .year-filter {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 15px;
+            margin: 20px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            flex-wrap: wrap;
+        }
+
+        .filter-label {
+            font-weight: bold;
+            color: #555;
+            font-size: 16px;
+        }
+
+        .year-btn {
+            padding: 10px 20px;
+            margin: 0 2px;
+            border: none;
+            border-radius: 20px;
+            background-color: #f2f2f2;
+            color: #333;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .year-btn:hover {
+            background-color: #e0e0e0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .year-btn.active {
+            background-color: #4CAF50;
+            color: white;
+            box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+        }
+
+        .year-btn.active:hover {
+            background-color: #45a049;
+        }
+
         /* Mobile styles */
         @media screen and (max-width: 768px) {
             /* Hide Average Deviation column on mobile */
@@ -157,6 +207,25 @@
                 word-wrap: break-word;
                 overflow-wrap: break-word;
             }
+
+            /* Year filter mobile adjustments */
+            .year-filter {
+                margin: 20px;
+                padding: 15px;
+            }
+
+            .filter-label {
+                font-size: 14px;
+                width: 100%;
+                text-align: left;
+                margin-bottom: 10px;
+            }
+
+            .year-btn {
+                padding: 8px 16px;
+                font-size: 13px;
+                white-space: nowrap;
+            }
         }
 
     </style>
@@ -168,8 +237,13 @@
         Gravity Quizz App Winner Statistics
     </h1>
 
+    <div class="year-filter">
+        <span class="filter-label">Filter by Year:</span>
+        <div id="yearButtons"></div>
+    </div>
+
     <div id="statistics" class="container-div">
-        <h2>Winner Ranking</h2>
+        <h2>Winner Ranking <span id="rankingYear"></span></h2>
         <table id="statisticsTable">
             <thead>
                 <tr>
@@ -186,7 +260,7 @@
     </div>
 
     <div id="history" class="container-div">
-        <h2>Question History</h2>
+        <h2>Question History <span id="historyYear"></span></h2>
         <table id="historyTable">
             <thead>
                 <tr>
@@ -207,14 +281,74 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         let allQuestionsData = [];
+        let selectedYear = new Date().getFullYear();
+        let winnerChart = null;
 
         document.addEventListener('DOMContentLoaded', function () {
             fetch('/getAllQuestions')
                 .then(response => response.json())
                 .then(data => {
                     allQuestionsData = data;
-                    const tableBody = document.querySelector('#historyTable tbody');
-                    data.forEach(item => {
+                    createYearFilter(data);
+                    updateAllData();
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        });
+
+        function createYearFilter(data) {
+            // Extract unique years from data
+            const years = [...new Set(data.map(item => new Date(item.date).getFullYear()))];
+            // Sort descending (newest first)
+            years.sort((a, b) => b - a);
+
+            const yearButtonsContainer = document.getElementById('yearButtons');
+            years.forEach(year => {
+                const btn = document.createElement('button');
+                btn.className = 'year-btn';
+                btn.textContent = year;
+                btn.dataset.year = year;
+                if (year === selectedYear) {
+                    btn.classList.add('active');
+                }
+                btn.addEventListener('click', () => {
+                    selectedYear = year;
+                    document.querySelectorAll('.year-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    updateAllData();
+                });
+                yearButtonsContainer.appendChild(btn);
+            });
+
+            // Add 'All Time' button
+            const allTimeBtn = document.createElement('button');
+            allTimeBtn.className = 'year-btn';
+            allTimeBtn.textContent = 'All Time';
+            allTimeBtn.dataset.year = 'all';
+            allTimeBtn.addEventListener('click', () => {
+                selectedYear = null;
+                document.querySelectorAll('.year-btn').forEach(b => b.classList.remove('active'));
+                allTimeBtn.classList.add('active');
+                updateAllData();
+            });
+            yearButtonsContainer.appendChild(allTimeBtn);
+        }
+
+        function updateAllData() {
+            const filteredData = selectedYear === null
+                ? allQuestionsData
+                : allQuestionsData.filter(item => new Date(item.date).getFullYear() === selectedYear);
+            updateQuestionHistory(filteredData);
+            updateWinnerRankingForYear(selectedYear);
+            updateWinnerChart(filteredData);
+            const yearLabel = selectedYear === null ? '(All Time)' : selectedYear;
+            document.getElementById('rankingYear').textContent = yearLabel;
+            document.getElementById('historyYear').textContent = yearLabel;
+        }
+
+        function updateQuestionHistory(data) {
+            const tableBody = document.querySelector('#historyTable tbody');
+            tableBody.innerHTML = '';
+            data.forEach(item => {
                         const row = document.createElement('tr');
                         const date = new Date(item.date);
                         const formattedDate = `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear()}`;
@@ -233,26 +367,64 @@
                             </td>
                             <td>${item.winner}</td>
                         `;
-                        tableBody.appendChild(row);
-                    });
-                    createWinnerChart(data);
-                })
-                .catch(error => console.error('Error fetching data:', error));
+                tableBody.appendChild(row);
+            });
+        }
 
-            getWinnerRanking();
-        });
+        async function updateWinnerRankingForYear(year) {
+            // Filter questions for selected year or all time
+            const yearQuestions = year === null
+                ? allQuestionsData
+                : allQuestionsData.filter(item => new Date(item.date).getFullYear() === year);
 
-        async function getWinnerRanking() {
-            try {
-                const response = await fetch('/getWinnerRanking');
-                if (response.ok) {
-                    const data = await response.json();
-                    if (!data.length) return;
-                    updateStatisticsTable(data);
-                }
-            } catch (error) {
-                console.error('Error:', error);
+            if (yearQuestions.length === 0) {
+                updateStatisticsTable([]);
+                return;
             }
+
+            // Calculate winner ranking from filtered data
+            const winnerStats = {};
+            yearQuestions.forEach(item => {
+                if (!winnerStats[item.winner]) {
+                    winnerStats[item.winner] = {
+                        count: 0,
+                        deviations: []
+                    };
+                }
+                winnerStats[item.winner].count++;
+
+                // Calculate deviation percentage
+                const solution = parseFloat(item.solution);
+                const closestAnswer = parseFloat(item.closestAnswer);
+                let deviation;
+                if (solution === 0) {
+                    deviation = closestAnswer === 0 ? 0 : 100;
+                } else {
+                    deviation = Math.abs((solution - closestAnswer) / solution) * 100;
+                }
+                winnerStats[item.winner].deviations.push(deviation);
+            });
+
+            // Convert to array and calculate ranks
+            const rankingData = Object.entries(winnerStats).map(([winner, stats]) => ({
+                winner: winner,
+                count: stats.count,
+                averageDeviation: (stats.deviations.reduce((a, b) => a + b, 0) / stats.deviations.length).toFixed(1)
+            }));
+
+            // Sort by count descending
+            rankingData.sort((a, b) => b.count - a.count);
+
+            // Assign ranks
+            let currentRank = 1;
+            rankingData.forEach((entry, index) => {
+                if (index > 0 && entry.count < rankingData[index - 1].count) {
+                    currentRank = index + 1;
+                }
+                entry.rank = currentRank;
+            });
+
+            updateStatisticsTable(rankingData);
         }
 
         function updateStatisticsTable(winsData) {
@@ -278,7 +450,15 @@
             });
         }
 
-        function createWinnerChart(data) {
+        function updateWinnerChart(data) {
+            // Destroy existing chart if it exists
+            if (winnerChart) {
+                winnerChart.destroy();
+            }
+
+            if (data.length === 0) {
+                return;
+            }
             // Sort data chronologically (oldest first)
             const sortedData = [...data].sort((a, b) => new Date(a.date) - new Date(b.date));
 
@@ -299,25 +479,71 @@
                 '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080'
             ];
 
-            // Get the year from the data (assume all data is from one year)
-            const year = sortedData.length > 0 ? new Date(sortedData[0].date).getFullYear() : new Date().getFullYear();
+            // Check if we're showing all time or a single year
+            const isAllTime = selectedYear === null;
 
-            // Create month names for the full year
-            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                              'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            let dataPointsWithMonthIndex;
+            let labels;
+            let xAxisLabels = [];
 
-            // Map each data point to a fractional month index (0.0 to 11.99)
-            const dataPointsWithMonthIndex = sortedData.map(item => {
-                const date = new Date(item.date);
-                const month = date.getMonth();
-                const day = date.getDate();
-                const daysInMonth = new Date(date.getFullYear(), month + 1, 0).getDate();
-                const fractionalMonth = month + (day - 1) / daysInMonth;
-                return {
-                    ...item,
-                    monthIndex: fractionalMonth
-                };
-            });
+            if (isAllTime) {
+                // For all time: create month indices spanning all months
+                const minDate = new Date(sortedData[0].date);
+                const maxDate = new Date(sortedData[sortedData.length - 1].date);
+
+                // Calculate total months
+                const startYear = minDate.getFullYear();
+                const startMonth = minDate.getMonth();
+                const endYear = maxDate.getFullYear();
+                const endMonth = maxDate.getMonth();
+
+                const totalMonths = (endYear - startYear) * 12 + (endMonth - startMonth) + 1;
+
+                // Create month labels
+                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                                  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+                for (let i = 0; i < totalMonths; i++) {
+                    const year = startYear + Math.floor((startMonth + i) / 12);
+                    const month = (startMonth + i) % 12;
+                    xAxisLabels.push(`${monthNames[month]} ${year}`);
+                }
+
+                // Map each data point to a month index
+                dataPointsWithMonthIndex = sortedData.map(item => {
+                    const date = new Date(item.date);
+                    const itemYear = date.getFullYear();
+                    const itemMonth = date.getMonth();
+                    const monthIndex = (itemYear - startYear) * 12 + (itemMonth - startMonth);
+                    const day = date.getDate();
+                    const daysInMonth = new Date(itemYear, itemMonth + 1, 0).getDate();
+                    const fractionalMonth = monthIndex + (day - 1) / daysInMonth;
+                    return {
+                        ...item,
+                        monthIndex: fractionalMonth
+                    };
+                });
+
+                labels = xAxisLabels;
+            } else {
+                // For single year: map to fractional month index (0.0 to 11.99)
+                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                                  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+                dataPointsWithMonthIndex = sortedData.map(item => {
+                    const date = new Date(item.date);
+                    const month = date.getMonth();
+                    const day = date.getDate();
+                    const daysInMonth = new Date(date.getFullYear(), month + 1, 0).getDate();
+                    const fractionalMonth = month + (day - 1) / daysInMonth;
+                    return {
+                        ...item,
+                        monthIndex: fractionalMonth
+                    };
+                });
+
+                labels = monthNames;
+            }
 
             // Create cumulative data for each winner with x positions
             const datasets = winners.map((winner, index) => {
@@ -350,11 +576,9 @@
                 };
             });
 
-            // Create labels for all 12 months
-            const labels = monthNames;
-
             const ctx = document.getElementById('winnerChart').getContext('2d');
 
+            // Store chart instance
             // Custom plugin to draw legend manually with proper spacing
             const customLegendPlugin = {
                 id: 'customLegend',
@@ -405,7 +629,56 @@
                 }
             };
 
-            new Chart(ctx, {
+            // Configure x-axis based on whether it's all time or single year
+            const xAxisConfig = isAllTime ? {
+                type: 'linear',
+                min: 0,
+                max: xAxisLabels.length,
+                title: {
+                    display: false
+                },
+                ticks: {
+                    maxRotation: 45,
+                    minRotation: 45,
+                    stepSize: 1,
+                    callback: function(value) {
+                        return xAxisLabels[Math.round(value)] || '';
+                    }
+                },
+                grid: {
+                    display: true,
+                    drawOnChartArea: true,
+                    color: (context) => {
+                        return Number.isInteger(context.tick.value) ? 'rgba(0, 0, 0, 0.1)' : 'transparent';
+                    }
+                }
+            } : {
+                type: 'linear',
+                min: 0,
+                max: 12,
+                title: {
+                    display: false
+                },
+                ticks: {
+                    maxRotation: 45,
+                    minRotation: 45,
+                    stepSize: 1,
+                    callback: function(value) {
+                        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                                          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                        return monthNames[Math.round(value)] || '';
+                    }
+                },
+                grid: {
+                    display: true,
+                    drawOnChartArea: true,
+                    color: (context) => {
+                        return Number.isInteger(context.tick.value) ? 'rgba(0, 0, 0, 0.1)' : 'transparent';
+                    }
+                }
+            };
+
+            winnerChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
@@ -442,29 +715,7 @@
                                 display: true
                             }
                         },
-                        x: {
-                            type: 'linear',
-                            min: 0,
-                            max: 12,
-                            title: {
-                                display: false
-                            },
-                            ticks: {
-                                maxRotation: 45,
-                                minRotation: 45,
-                                stepSize: 1,
-                                callback: function(value) {
-                                    return monthNames[Math.round(value)] || '';
-                                }
-                            },
-                            grid: {
-                                display: true,
-                                drawOnChartArea: true,
-                                color: (context) => {
-                                    return Number.isInteger(context.tick.value) ? 'rgba(0, 0, 0, 0.1)' : 'transparent';
-                                }
-                            }
-                        }
+                        x: xAxisConfig
                     }
                 },
                 plugins: [customLegendPlugin]
