@@ -382,7 +382,13 @@
             handleAnswers(answers);
         });
 
-        const subscriberID = Math.random().toString(36).substring(7);
+        // Load or generate subscriberID from localStorage
+        let subscriberID = localStorage.getItem('hostSubscriberID');
+        if (!subscriberID) {
+            subscriberID = Math.random().toString(36).substring(7);
+            localStorage.setItem('hostSubscriberID', subscriberID);
+        }
+
         let currentPhase = 1; // 1: Setup, 2: Active, 3: Closed, 4: Revealed
 
         function updatePhase(phase) {
@@ -444,8 +450,59 @@
             }
         }
 
-        // Initialize phase 1
-        updatePhase(1);
+        // Calculate phase from state data
+        function calculatePhaseFromState(state) {
+            if (!state.question) return 1;
+            if (!state.isClosed) return 2;
+            if (!state.resultsRevealed) return 3;
+            return 4;
+        }
+
+        // Load host state from server on page load
+        async function loadHostState() {
+            try {
+                const response = await fetch(`/getHostState?hostId=${subscriberID}`);
+                const state = await response.json();
+
+                if (state.isValid) {
+                    // Restore input fields
+                    document.getElementById('question').value = state.question;
+                    document.getElementById('answer').value = state.answer || '';
+                    document.getElementById('displayQuestion').textContent = state.question;
+                    document.getElementById('displayAnswer').textContent = state.answer || '';
+
+                    // Calculate and set phase
+                    const phase = calculatePhaseFromState(state);
+                    updatePhase(phase);
+
+                    // Restore results if available
+                    if (state.sortedAnswers.length > 0) {
+                        updateResultsTable(state.sortedAnswers);
+                    }
+
+                    // Re-subscribe to socket if needed
+                    if (phase >= 2) {
+                        socketIO.emit('subscribe', subscriberID);
+                    }
+
+                    // Start polling if in active phase
+                    if (phase === 2) {
+                        startPollingAnswers();
+                    }
+                } else {
+                    // Start fresh
+                    updatePhase(1);
+                }
+            } catch (error) {
+                console.error('Error loading host state:', error);
+                updatePhase(1);
+            }
+        }
+
+        // Load state on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadHostState();
+        });
 
         async function onSetQuestionClicked() {
             if (currentPhase !== 1) return; // Only submit in Setup phase

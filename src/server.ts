@@ -48,7 +48,6 @@ export class QuizzServer {
             });
             socket.on('unsubscribe', (topic) => {
                 socket.leave(topic);
-                this.hostSubscriberId = "";
             });
         });
     }
@@ -123,6 +122,30 @@ export class QuizzServer {
             this.clearQuestion();
             this.socketServer.emit('newQuestion', this.question);
             res.send('Question cleared');
+        });
+
+        this.app.get('/getHostState', (req, res) => {
+            const hostId = req.query.hostId as string;
+
+            if (hostId === this.hostSubscriberId && this.question !== "") {
+                res.json({
+                    isValid: true,
+                    question: this.question,
+                    answer: this.solution,
+                    isClosed: this.isClosed,
+                    resultsRevealed: this.resultsRevealed,
+                    sortedAnswers: this.sortedAnswers
+                });
+            } else {
+                res.json({
+                    isValid: false,
+                    question: "",
+                    answer: null,
+                    isClosed: false,
+                    resultsRevealed: false,
+                    sortedAnswers: []
+                });
+            }
         });
 
         // player services
@@ -200,6 +223,7 @@ export class QuizzServer {
         this.resultsRevealed = false;
         this.sortedAnswers = [];
         this.answers.clear();
+        this.hostSubscriberId = "";
     }
 
     private setNewQuestion(question: string, answer: number) {
