@@ -238,6 +238,12 @@
 
         setDisabled(true);
         getQuestion();
+        getResults();
+
+        // Poll results every 5 seconds
+        setInterval(() => {
+            getResults();
+        }, 5000);
 
         document.getElementById('answerForm').addEventListener('submit', async function (event) {
             event.preventDefault();
@@ -366,6 +372,20 @@
             } catch (error) {
                 console.error('Fehler:', error);
                 document.getElementById('question').textContent = 'Error loading question.';
+            }
+        }
+
+        async function getResults() {
+            try {
+                const response = await fetch('/getResults');
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result) {
+                        handleResults(result);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching results:', error);
             }
         }
 

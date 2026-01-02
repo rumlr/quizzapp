@@ -32,6 +32,7 @@ export class QuizzServer {
     private solution: number = 0;
     private questionTimestamp: number = 0;
     private isClosed: boolean = false;
+    private resultsRevealed: boolean = false;
     private hostSubscriberId: string = "";
 
 
@@ -109,6 +110,7 @@ export class QuizzServer {
         });
 
         this.app.get('/revealResult', (req, res) => {
+            this.resultsRevealed = true;
             this.socketServer.emit('results', {
                 solution: this.solution,
                 ranking: this.sortedAnswers
@@ -130,6 +132,17 @@ export class QuizzServer {
                 question: this.question,
                 isClosed: this.isClosed     // required to retrieve state when loading player ui
             });
+        });
+
+        this.app.get('/getResults', (req, res) => {
+            if (this.resultsRevealed && this.sortedAnswers.length > 0) {
+                res.json({
+                    solution: this.solution,
+                    ranking: this.sortedAnswers
+                });
+            } else {
+                res.json(null);
+            }
         });
 
         this.app.post('/addAnswer', (req, res) => {
@@ -184,6 +197,7 @@ export class QuizzServer {
         this.solution = 0;
         this.questionTimestamp = 0;
         this.isClosed = false;
+        this.resultsRevealed = false;
         this.sortedAnswers = [];
         this.answers.clear();
     }
