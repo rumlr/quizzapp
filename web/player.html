@@ -122,26 +122,37 @@
         }
 
         .statistics-button {
-            position: absolute;
-            top: 120px;
-            right: 20px;
             background-color: #4CAF50;
             color: #fff;
-            padding: 10px 20px;
+            padding: 10px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
         }
 
         .statistics-button:hover {
             background-color: #45a049;
         }
 
+        .button-bar {
+            display: flex;
+            justify-content: flex-end;
+            margin: 20px 20px 0 20px;
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+
         .main-container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-top: 50px;
+            margin-top: 10px;
         }
 
         .question {
@@ -199,7 +210,15 @@
         <img src="icon.png" alt="Icon" width="40" height="40">
         Gravity Quizz App
     </h1>
-    <button class="statistics-button" onclick="openStatistics()">Statistics</button>
+    <div class="button-bar">
+        <button class="statistics-button" onclick="openStatistics()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="20" x2="12" y2="10"></line>
+                <line x1="18" y1="20" x2="18" y2="4"></line>
+                <line x1="6" y1="20" x2="6" y2="16"></line>
+            </svg>
+        </button>
+    </div>
     <div class="main-container">
         <h2 id="question" class="question">Waiting for question...</h2>
         <form id="answerForm">
