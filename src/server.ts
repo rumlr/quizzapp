@@ -32,6 +32,7 @@ export class QuizzServer {
     private solution: number = 0;
     private questionTimestamp: number = 0;
     private isClosed: boolean = false;
+    private resultsRevealed: boolean = false;
     private hostSubscriberId: string = "";
 
 
@@ -47,7 +48,6 @@ export class QuizzServer {
             });
             socket.on('unsubscribe', (topic) => {
                 socket.leave(topic);
-                this.hostSubscriberId = "";
             });
         });
     }
@@ -81,7 +81,12 @@ export class QuizzServer {
         // host services
 
         this.app.post('/newQuestion', (req, res) => {
-            this.setNewQuestion(req.body.question, req.body.answer);
+            const solution = parseFloat(req.body.answer);
+            if (isNaN(solution) || !isFinite(solution)) {
+                res.status(400).send('Invalid solution');
+                return;
+            }
+            this.setNewQuestion(req.body.question, solution);
             this.isClosed = false;
             this.socketServer.emit('isClosed', false);
             this.socketServer.emit('newQuestion', this.question);
@@ -104,6 +109,7 @@ export class QuizzServer {
         });
 
         this.app.get('/revealResult', (req, res) => {
+            this.resultsRevealed = true;
             this.socketServer.emit('results', {
                 solution: this.solution,
                 ranking: this.sortedAnswers
@@ -118,6 +124,30 @@ export class QuizzServer {
             res.send('Question cleared');
         });
 
+        this.app.get('/getHostState', (req, res) => {
+            const hostId = req.query.hostId as string;
+
+            if (hostId === this.hostSubscriberId && this.question !== "") {
+                res.json({
+                    isValid: true,
+                    question: this.question,
+                    answer: this.solution,
+                    isClosed: this.isClosed,
+                    resultsRevealed: this.resultsRevealed,
+                    sortedAnswers: this.sortedAnswers
+                });
+            } else {
+                res.json({
+                    isValid: false,
+                    question: "",
+                    answer: null,
+                    isClosed: false,
+                    resultsRevealed: false,
+                    sortedAnswers: []
+                });
+            }
+        });
+
         // player services
 
         this.app.get('/getQuestion', (req, res) => {
@@ -127,6 +157,17 @@ export class QuizzServer {
             });
         });
 
+        this.app.get('/getResults', (req, res) => {
+            if (this.resultsRevealed && this.sortedAnswers.length > 0) {
+                res.json({
+                    solution: this.solution,
+                    ranking: this.sortedAnswers
+                });
+            } else {
+                res.json(null);
+            }
+        });
+
         this.app.post('/addAnswer', (req, res) => {
             if (this.isClosed) {
                 res.status(400).send('Question is closed');
@@ -134,7 +175,7 @@ export class QuizzServer {
             }
             const { name, answer } = req.body;
             const parsedAnswer = parseFloat(answer);
-            if (isNaN(parsedAnswer)) {
+            if (isNaN(parsedAnswer) || !isFinite(parsedAnswer))  {
                 res.status(400).send('Invalid answer');
                 return;
             }
@@ -145,15 +186,6 @@ export class QuizzServer {
         });
 
         // statistics services
-
-        this.app.get('/getWinnerRanking', (req, res) => {
-            this.getWinnerRanking().then(result => {
-                res.json(result);
-            }).catch(error => {
-                res.status(500).send(error.message);
-                errWithTime(error.message);
-            });
-        });
 
         this.app.get('/getAllQuestions', (req, res) => {
             this.getAllQuestions().then(result => {
@@ -188,8 +220,10 @@ export class QuizzServer {
         this.solution = 0;
         this.questionTimestamp = 0;
         this.isClosed = false;
+        this.resultsRevealed = false;
         this.sortedAnswers = [];
         this.answers.clear();
+        this.hostSubscriberId = "";
     }
 
     private setNewQuestion(question: string, answer: number) {
@@ -228,10 +262,6 @@ export class QuizzServer {
         const closestAnswer = this.sortedAnswers[0].answer;
         this.dbConnector.insertQuestion(new Date().toISOString(), this.question, this.solution.toString(), closestAnswer.toString(), winner);
 				this.dbConnector.updateWinnerBookToMaggus();
-    }
-
-    private getWinnerRanking() {
-        return this.dbConnector.getWinnerRanking();
     }
 
     private getAllQuestions() {
